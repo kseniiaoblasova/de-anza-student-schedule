@@ -1,0 +1,1237 @@
+{
+  "generated_at": "2026-07-23T20:35:40.868163Z",
+  "total_conflict_pairs": 10173,
+  "pathway_quarters_analyzed": 983,
+  "departments": [
+    {
+      "subject": "COMM",
+      "division_code": "2LA",
+      "division_label": "Language Arts",
+      "conflict_appearances": 7912,
+      "pathway_count": 111
+    },
+    {
+      "subject": "MATH",
+      "division_code": "2PS",
+      "division_label": "Physical Sciences, Math & Engineering",
+      "conflict_appearances": 2861,
+      "pathway_count": 69
+    },
+    {
+      "subject": "CHEM",
+      "division_code": "2PS",
+      "division_label": "Physical Sciences, Math & Engineering",
+      "conflict_appearances": 2442,
+      "pathway_count": 17
+    },
+    {
+      "subject": "BIOL",
+      "division_code": "2BH",
+      "division_label": "Biological & Health Sciences",
+      "conflict_appearances": 1367,
+      "pathway_count": 14
+    },
+    {
+      "subject": "PHIL",
+      "division_code": "2SS",
+      "division_label": "Social Sciences & Humanities",
+      "conflict_appearances": 760,
+      "pathway_count": 54
+    },
+    {
+      "subject": "PHYS",
+      "division_code": "2PS",
+      "division_label": "Physical Sciences, Math & Engineering",
+      "conflict_appearances": 735,
+      "pathway_count": 11
+    },
+    {
+      "subject": "ARTS",
+      "division_code": "2CA",
+      "division_label": "Creative Arts",
+      "conflict_appearances": 654,
+      "pathway_count": 22
+    },
+    {
+      "subject": "CIS",
+      "division_code": "2CB",
+      "division_label": "Business & CIS",
+      "conflict_appearances": 359,
+      "pathway_count": 26
+    },
+    {
+      "subject": "MUSI",
+      "division_code": "2CA",
+      "division_label": "Creative Arts",
+      "conflict_appearances": 337,
+      "pathway_count": 2
+    },
+    {
+      "subject": "PSYC",
+      "division_code": "2SS",
+      "division_label": "Social Sciences & Humanities",
+      "conflict_appearances": 328,
+      "pathway_count": 15
+    },
+    {
+      "subject": "ESL",
+      "division_code": "2LA",
+      "division_label": "Language Arts",
+      "conflict_appearances": 327,
+      "pathway_count": 85
+    },
+    {
+      "subject": "ECON",
+      "division_code": "2SS",
+      "division_label": "Social Sciences & Humanities",
+      "conflict_appearances": 212,
+      "pathway_count": 9
+    },
+    {
+      "subject": "SOC",
+      "division_code": "2SS",
+      "division_label": "Social Sciences & Humanities",
+      "conflict_appearances": 186,
+      "pathway_count": 15
+    },
+    {
+      "subject": "ANTH",
+      "division_code": "2SS",
+      "division_label": "Social Sciences & Humanities",
+      "conflict_appearances": 184,
+      "pathway_count": 27
+    },
+    {
+      "subject": "PHTG",
+      "division_code": "2CA",
+      "division_label": "Creative Arts",
+      "conflict_appearances": 179,
+      "pathway_count": 16
+    },
+    {
+      "subject": "AUTO",
+      "division_code": "2AT",
+      "division_label": "Applied Technologies",
+      "conflict_appearances": 156,
+      "pathway_count": 29
+    },
+    {
+      "subject": "HUMI",
+      "division_code": "2SS",
+      "division_label": "Social Sciences & Humanities",
+      "conflict_appearances": 139,
+      "pathway_count": 6
+    },
+    {
+      "subject": "JOUR",
+      "division_code": "2LA",
+      "division_label": "Language Arts",
+      "conflict_appearances": 123,
+      "pathway_count": 20
+    },
+    {
+      "subject": "NURS",
+      "division_code": "2BH",
+      "division_label": "Biological & Health Sciences",
+      "conflict_appearances": 118,
+      "pathway_count": 2
+    },
+    {
+      "subject": "ACCT",
+      "division_code": "2CB",
+      "division_label": "Business & CIS",
+      "conflict_appearances": 96,
+      "pathway_count": 3
+    },
+    {
+      "subject": "CETH",
+      "division_code": "2IC",
+      "division_label": "Intercultural Studies / World Languages",
+      "conflict_appearances": 92,
+      "pathway_count": 7
+    },
+    {
+      "subject": "ASAM",
+      "division_code": "2IC",
+      "division_label": "Intercultural Studies / World Languages",
+      "conflict_appearances": 71,
+      "pathway_count": 11
+    },
+    {
+      "subject": "BUS",
+      "division_code": "2CB",
+      "division_label": "Business & CIS",
+      "conflict_appearances": 66,
+      "pathway_count": 6
+    },
+    {
+      "subject": "CHLX",
+      "division_code": "2IC",
+      "division_label": "Intercultural Studies / World Languages",
+      "conflict_appearances": 60,
+      "pathway_count": 5
+    },
+    {
+      "subject": "DMT",
+      "division_code": "2AT",
+      "division_label": "Applied Technologies",
+      "conflict_appearances": 60,
+      "pathway_count": 7
+    },
+    {
+      "subject": "ADMJ",
+      "division_code": "2SS",
+      "division_label": "Social Sciences & Humanities",
+      "conflict_appearances": 59,
+      "pathway_count": 11
+    },
+    {
+      "subject": "HIST",
+      "division_code": "2SS",
+      "division_label": "Social Sciences & Humanities",
+      "conflict_appearances": 57,
+      "pathway_count": 3
+    },
+    {
+      "subject": "POLI",
+      "division_code": "2SS",
+      "division_label": "Social Sciences & Humanities",
+      "conflict_appearances": 45,
+      "pathway_count": 7
+    },
+    {
+      "subject": "GEOL",
+      "division_code": "2PS",
+      "division_label": "Physical Sciences, Math & Engineering",
+      "conflict_appearances": 32,
+      "pathway_count": 3
+    },
+    {
+      "subject": "HTEC",
+      "division_code": "2BH",
+      "division_label": "Biological & Health Sciences",
+      "conflict_appearances": 31,
+      "pathway_count": 6
+    },
+    {
+      "subject": "THEA",
+      "division_code": "2CA",
+      "division_label": "Creative Arts",
+      "conflict_appearances": 27,
+      "pathway_count": 3
+    },
+    {
+      "subject": "ENGR",
+      "division_code": "2PS",
+      "division_label": "Physical Sciences, Math & Engineering",
+      "conflict_appearances": 26,
+      "pathway_count": 1
+    },
+    {
+      "subject": "NUTR",
+      "division_code": "2BH",
+      "division_label": "Biological & Health Sciences",
+      "conflict_appearances": 22,
+      "pathway_count": 4
+    },
+    {
+      "subject": "SIGN",
+      "division_code": "2IC",
+      "division_label": "Intercultural Studies / World Languages",
+      "conflict_appearances": 21,
+      "pathway_count": 2
+    },
+    {
+      "subject": "EWRT",
+      "division_code": "2LA",
+      "division_label": "Language Arts",
+      "conflict_appearances": 20,
+      "pathway_count": 3
+    },
+    {
+      "subject": "GEO",
+      "division_code": "2SS",
+      "division_label": "Social Sciences & Humanities",
+      "conflict_appearances": 18,
+      "pathway_count": 3
+    },
+    {
+      "subject": "ICS",
+      "division_code": "2SS",
+      "division_label": "Social Sciences & Humanities",
+      "conflict_appearances": 18,
+      "pathway_count": 3
+    },
+    {
+      "subject": "JAPN",
+      "division_code": "2IC",
+      "division_label": "Intercultural Studies / World Languages",
+      "conflict_appearances": 16,
+      "pathway_count": 3
+    },
+    {
+      "subject": "ESCI",
+      "division_code": "2BH",
+      "division_label": "Biological & Health Sciences",
+      "conflict_appearances": 14,
+      "pathway_count": 3
+    },
+    {
+      "subject": "KORE",
+      "division_code": "2IC",
+      "division_label": "Intercultural Studies / World Languages",
+      "conflict_appearances": 12,
+      "pathway_count": 2
+    },
+    {
+      "subject": "PARA",
+      "division_code": "2SS",
+      "division_label": "Social Sciences & Humanities",
+      "conflict_appearances": 12,
+      "pathway_count": 2
+    },
+    {
+      "subject": "VIET",
+      "division_code": "2IC",
+      "division_label": "Intercultural Studies / World Languages",
+      "conflict_appearances": 10,
+      "pathway_count": 2
+    },
+    {
+      "subject": "MET",
+      "division_code": "2PS",
+      "division_label": "Physical Sciences, Math & Engineering",
+      "conflict_appearances": 9,
+      "pathway_count": 2
+    },
+    {
+      "subject": "SPAN",
+      "division_code": "2IC",
+      "division_label": "Intercultural Studies / World Languages",
+      "conflict_appearances": 8,
+      "pathway_count": 2
+    },
+    {
+      "subject": "EDUC",
+      "division_code": "2PS",
+      "division_label": "Physical Sciences, Math & Engineering",
+      "conflict_appearances": 8,
+      "pathway_count": 2
+    },
+    {
+      "subject": "DANC",
+      "division_code": "2CA",
+      "division_label": "Creative Arts",
+      "conflict_appearances": 8,
+      "pathway_count": 1
+    },
+    {
+      "subject": "HNDI",
+      "division_code": "2IC",
+      "division_label": "Intercultural Studies / World Languages",
+      "conflict_appearances": 7,
+      "pathway_count": 1
+    },
+    {
+      "subject": "MAND",
+      "division_code": "2IC",
+      "division_label": "Intercultural Studies / World Languages",
+      "conflict_appearances": 7,
+      "pathway_count": 4
+    },
+    {
+      "subject": "ITAL",
+      "division_code": "2IC",
+      "division_label": "Intercultural Studies / World Languages",
+      "conflict_appearances": 6,
+      "pathway_count": 2
+    },
+    {
+      "subject": "ASTR",
+      "division_code": "2PS",
+      "division_label": "Physical Sciences, Math & Engineering",
+      "conflict_appearances": 5,
+      "pathway_count": 1
+    },
+    {
+      "subject": "AFAM",
+      "division_code": "2IC",
+      "division_label": "Intercultural Studies / World Languages",
+      "conflict_appearances": 5,
+      "pathway_count": 3
+    },
+    {
+      "subject": "HUMA",
+      "division_code": "2ST",
+      "division_label": "Student Success",
+      "conflict_appearances": 5,
+      "pathway_count": 1
+    },
+    {
+      "subject": "GERM",
+      "division_code": "2IC",
+      "division_label": "Intercultural Studies / World Languages",
+      "conflict_appearances": 5,
+      "pathway_count": 2
+    },
+    {
+      "subject": "FREN",
+      "division_code": "2IC",
+      "division_label": "Intercultural Studies / World Languages",
+      "conflict_appearances": 4,
+      "pathway_count": 2
+    },
+    {
+      "subject": "NAIS",
+      "division_code": "2IC",
+      "division_label": "Intercultural Studies / World Languages",
+      "conflict_appearances": 2,
+      "pathway_count": 1
+    },
+    {
+      "subject": "RUSS",
+      "division_code": "2IC",
+      "division_label": "Intercultural Studies / World Languages",
+      "conflict_appearances": 2,
+      "pathway_count": 1
+    },
+    {
+      "subject": "ELIT",
+      "division_code": "2LA",
+      "division_label": "Language Arts",
+      "conflict_appearances": 1,
+      "pathway_count": 1
+    }
+  ],
+  "divisions": [
+    {
+      "division_code": "2LA",
+      "division_label": "Language Arts",
+      "conflict_appearances": 8383,
+      "subject_count": 5,
+      "subjects": [
+        "COMM",
+        "ESL",
+        "JOUR",
+        "EWRT",
+        "ELIT"
+      ]
+    },
+    {
+      "division_code": "2PS",
+      "division_label": "Physical Sciences, Math & Engineering",
+      "conflict_appearances": 6118,
+      "subject_count": 8,
+      "subjects": [
+        "MATH",
+        "CHEM",
+        "PHYS",
+        "GEOL",
+        "ENGR",
+        "MET",
+        "EDUC",
+        "ASTR"
+      ]
+    },
+    {
+      "division_code": "2SS",
+      "division_label": "Social Sciences & Humanities",
+      "conflict_appearances": 2018,
+      "subject_count": 12,
+      "subjects": [
+        "PHIL",
+        "PSYC",
+        "ECON",
+        "SOC",
+        "ANTH",
+        "HUMI",
+        "ADMJ",
+        "HIST",
+        "POLI",
+        "GEO",
+        "ICS",
+        "PARA"
+      ]
+    },
+    {
+      "division_code": "2BH",
+      "division_label": "Biological & Health Sciences",
+      "conflict_appearances": 1552,
+      "subject_count": 5,
+      "subjects": [
+        "BIOL",
+        "NURS",
+        "HTEC",
+        "NUTR",
+        "ESCI"
+      ]
+    },
+    {
+      "division_code": "2CA",
+      "division_label": "Creative Arts",
+      "conflict_appearances": 1205,
+      "subject_count": 5,
+      "subjects": [
+        "ARTS",
+        "MUSI",
+        "PHTG",
+        "THEA",
+        "DANC"
+      ]
+    },
+    {
+      "division_code": "2CB",
+      "division_label": "Business & CIS",
+      "conflict_appearances": 521,
+      "subject_count": 3,
+      "subjects": [
+        "CIS",
+        "ACCT",
+        "BUS"
+      ]
+    },
+    {
+      "division_code": "2IC",
+      "division_label": "Intercultural Studies / World Languages",
+      "conflict_appearances": 328,
+      "subject_count": 16,
+      "subjects": [
+        "CETH",
+        "ASAM",
+        "CHLX",
+        "SIGN",
+        "JAPN",
+        "KORE",
+        "VIET",
+        "SPAN",
+        "HNDI",
+        "MAND",
+        "ITAL",
+        "AFAM",
+        "GERM",
+        "FREN",
+        "NAIS",
+        "RUSS"
+      ]
+    },
+    {
+      "division_code": "2AT",
+      "division_label": "Applied Technologies",
+      "conflict_appearances": 216,
+      "subject_count": 2,
+      "subjects": [
+        "AUTO",
+        "DMT"
+      ]
+    },
+    {
+      "division_code": "2ST",
+      "division_label": "Student Success",
+      "conflict_appearances": 5,
+      "subject_count": 1,
+      "subjects": [
+        "HUMA"
+      ]
+    }
+  ],
+  "pairs": [
+    {
+      "subject_a": "COMM",
+      "subject_b": "COMM",
+      "conflict_count": 2373,
+      "is_intra_department": true
+    },
+    {
+      "subject_a": "CHEM",
+      "subject_b": "MATH",
+      "conflict_count": 993,
+      "is_intra_department": false
+    },
+    {
+      "subject_a": "COMM",
+      "subject_b": "MATH",
+      "conflict_count": 819,
+      "is_intra_department": false
+    },
+    {
+      "subject_a": "COMM",
+      "subject_b": "PHIL",
+      "conflict_count": 620,
+      "is_intra_department": false
+    },
+    {
+      "subject_a": "CHEM",
+      "subject_b": "COMM",
+      "conflict_count": 449,
+      "is_intra_department": false
+    },
+    {
+      "subject_a": "BIOL",
+      "subject_b": "MATH",
+      "conflict_count": 386,
+      "is_intra_department": false
+    },
+    {
+      "subject_a": "CHEM",
+      "subject_b": "PHYS",
+      "conflict_count": 311,
+      "is_intra_department": false
+    },
+    {
+      "subject_a": "BIOL",
+      "subject_b": "COMM",
+      "conflict_count": 304,
+      "is_intra_department": false
+    },
+    {
+      "subject_a": "BIOL",
+      "subject_b": "CHEM",
+      "conflict_count": 232,
+      "is_intra_department": false
+    },
+    {
+      "subject_a": "ARTS",
+      "subject_b": "ARTS",
+      "conflict_count": 192,
+      "is_intra_department": true
+    },
+    {
+      "subject_a": "CHEM",
+      "subject_b": "CHEM",
+      "conflict_count": 153,
+      "is_intra_department": true
+    },
+    {
+      "subject_a": "MATH",
+      "subject_b": "PHYS",
+      "conflict_count": 152,
+      "is_intra_department": false
+    },
+    {
+      "subject_a": "MUSI",
+      "subject_b": "MUSI",
+      "conflict_count": 152,
+      "is_intra_department": true
+    },
+    {
+      "subject_a": "BIOL",
+      "subject_b": "BIOL",
+      "conflict_count": 147,
+      "is_intra_department": true
+    },
+    {
+      "subject_a": "ARTS",
+      "subject_b": "COMM",
+      "conflict_count": 145,
+      "is_intra_department": false
+    },
+    {
+      "subject_a": "CIS",
+      "subject_b": "COMM",
+      "conflict_count": 120,
+      "is_intra_department": false
+    },
+    {
+      "subject_a": "ESL",
+      "subject_b": "MATH",
+      "conflict_count": 112,
+      "is_intra_department": false
+    },
+    {
+      "subject_a": "COMM",
+      "subject_b": "PHYS",
+      "conflict_count": 96,
+      "is_intra_department": false
+    },
+    {
+      "subject_a": "COMM",
+      "subject_b": "PSYC",
+      "conflict_count": 79,
+      "is_intra_department": false
+    },
+    {
+      "subject_a": "CIS",
+      "subject_b": "MATH",
+      "conflict_count": 74,
+      "is_intra_department": false
+    },
+    {
+      "subject_a": "ACCT",
+      "subject_b": "MATH",
+      "conflict_count": 69,
+      "is_intra_department": false
+    },
+    {
+      "subject_a": "PSYC",
+      "subject_b": "SOC",
+      "conflict_count": 64,
+      "is_intra_department": false
+    },
+    {
+      "subject_a": "ARTS",
+      "subject_b": "PHTG",
+      "conflict_count": 60,
+      "is_intra_department": false
+    },
+    {
+      "subject_a": "COMM",
+      "subject_b": "PHTG",
+      "conflict_count": 57,
+      "is_intra_department": false
+    },
+    {
+      "subject_a": "COMM",
+      "subject_b": "JOUR",
+      "conflict_count": 57,
+      "is_intra_department": false
+    },
+    {
+      "subject_a": "BIOL",
+      "subject_b": "PHYS",
+      "conflict_count": 56,
+      "is_intra_department": false
+    },
+    {
+      "subject_a": "CHEM",
+      "subject_b": "ESL",
+      "conflict_count": 55,
+      "is_intra_department": false
+    },
+    {
+      "subject_a": "MATH",
+      "subject_b": "PSYC",
+      "conflict_count": 53,
+      "is_intra_department": false
+    },
+    {
+      "subject_a": "PHYS",
+      "subject_b": "PHYS",
+      "conflict_count": 52,
+      "is_intra_department": true
+    },
+    {
+      "subject_a": "COMM",
+      "subject_b": "SOC",
+      "conflict_count": 52,
+      "is_intra_department": false
+    },
+    {
+      "subject_a": "CIS",
+      "subject_b": "CIS",
+      "conflict_count": 50,
+      "is_intra_department": true
+    },
+    {
+      "subject_a": "COMM",
+      "subject_b": "HUMI",
+      "conflict_count": 50,
+      "is_intra_department": false
+    },
+    {
+      "subject_a": "AUTO",
+      "subject_b": "AUTO",
+      "conflict_count": 49,
+      "is_intra_department": true
+    },
+    {
+      "subject_a": "MATH",
+      "subject_b": "MATH",
+      "conflict_count": 47,
+      "is_intra_department": true
+    },
+    {
+      "subject_a": "ANTH",
+      "subject_b": "COMM",
+      "conflict_count": 45,
+      "is_intra_department": false
+    },
+    {
+      "subject_a": "NURS",
+      "subject_b": "NURS",
+      "conflict_count": 43,
+      "is_intra_department": true
+    },
+    {
+      "subject_a": "CHEM",
+      "subject_b": "PSYC",
+      "conflict_count": 40,
+      "is_intra_department": false
+    },
+    {
+      "subject_a": "PHIL",
+      "subject_b": "PHIL",
+      "conflict_count": 38,
+      "is_intra_department": true
+    },
+    {
+      "subject_a": "AUTO",
+      "subject_b": "COMM",
+      "conflict_count": 30,
+      "is_intra_department": false
+    },
+    {
+      "subject_a": "COMM",
+      "subject_b": "MUSI",
+      "conflict_count": 28,
+      "is_intra_department": false
+    },
+    {
+      "subject_a": "ARTS",
+      "subject_b": "HUMI",
+      "conflict_count": 26,
+      "is_intra_department": false
+    },
+    {
+      "subject_a": "COMM",
+      "subject_b": "ECON",
+      "conflict_count": 25,
+      "is_intra_department": false
+    },
+    {
+      "subject_a": "CETH",
+      "subject_b": "COMM",
+      "conflict_count": 25,
+      "is_intra_department": false
+    },
+    {
+      "subject_a": "BIOL",
+      "subject_b": "NURS",
+      "conflict_count": 25,
+      "is_intra_department": false
+    },
+    {
+      "subject_a": "ECON",
+      "subject_b": "POLI",
+      "conflict_count": 24,
+      "is_intra_department": false
+    },
+    {
+      "subject_a": "BIOL",
+      "subject_b": "ESL",
+      "conflict_count": 23,
+      "is_intra_department": false
+    },
+    {
+      "subject_a": "ECON",
+      "subject_b": "ECON",
+      "conflict_count": 23,
+      "is_intra_department": true
+    },
+    {
+      "subject_a": "COMM",
+      "subject_b": "HIST",
+      "conflict_count": 23,
+      "is_intra_department": false
+    },
+    {
+      "subject_a": "COMM",
+      "subject_b": "ESL",
+      "conflict_count": 22,
+      "is_intra_department": false
+    },
+    {
+      "subject_a": "GEOL",
+      "subject_b": "MATH",
+      "conflict_count": 22,
+      "is_intra_department": false
+    }
+  ],
+  "terms": [
+    {
+      "term_code": "202622",
+      "total_conflicts": 2124,
+      "top_subjects": [
+        {
+          "subject": "MATH",
+          "count": 1223
+        },
+        {
+          "subject": "CHEM",
+          "count": 1088
+        },
+        {
+          "subject": "BIOL",
+          "count": 479
+        },
+        {
+          "subject": "COMM",
+          "count": 384
+        },
+        {
+          "subject": "ESL",
+          "count": 315
+        },
+        {
+          "subject": "PSYC",
+          "count": 157
+        },
+        {
+          "subject": "CIS",
+          "count": 93
+        },
+        {
+          "subject": "SOC",
+          "count": 60
+        },
+        {
+          "subject": "AUTO",
+          "count": 56
+        },
+        {
+          "subject": "JOUR",
+          "count": 49
+        },
+        {
+          "subject": "ANTH",
+          "count": 45
+        },
+        {
+          "subject": "ASAM",
+          "count": 35
+        },
+        {
+          "subject": "ARTS",
+          "count": 34
+        },
+        {
+          "subject": "ADMJ",
+          "count": 29
+        },
+        {
+          "subject": "GEOL",
+          "count": 23
+        }
+      ]
+    },
+    {
+      "term_code": "202632",
+      "total_conflicts": 4166,
+      "top_subjects": [
+        {
+          "subject": "COMM",
+          "count": 5225
+        },
+        {
+          "subject": "MATH",
+          "count": 716
+        },
+        {
+          "subject": "CHEM",
+          "count": 579
+        },
+        {
+          "subject": "PHIL",
+          "count": 543
+        },
+        {
+          "subject": "BIOL",
+          "count": 248
+        },
+        {
+          "subject": "CIS",
+          "count": 229
+        },
+        {
+          "subject": "ARTS",
+          "count": 126
+        },
+        {
+          "subject": "PSYC",
+          "count": 90
+        },
+        {
+          "subject": "SOC",
+          "count": 76
+        },
+        {
+          "subject": "HUMI",
+          "count": 66
+        },
+        {
+          "subject": "ANTH",
+          "count": 59
+        },
+        {
+          "subject": "PHTG",
+          "count": 49
+        },
+        {
+          "subject": "CETH",
+          "count": 39
+        },
+        {
+          "subject": "JOUR",
+          "count": 36
+        },
+        {
+          "subject": "CHLX",
+          "count": 33
+        }
+      ]
+    },
+    {
+      "term_code": "202642",
+      "total_conflicts": 1931,
+      "top_subjects": [
+        {
+          "subject": "COMM",
+          "count": 1933
+        },
+        {
+          "subject": "MATH",
+          "count": 554
+        },
+        {
+          "subject": "CHEM",
+          "count": 316
+        },
+        {
+          "subject": "BIOL",
+          "count": 277
+        },
+        {
+          "subject": "PHIL",
+          "count": 159
+        },
+        {
+          "subject": "PHYS",
+          "count": 135
+        },
+        {
+          "subject": "ARTS",
+          "count": 98
+        },
+        {
+          "subject": "AUTO",
+          "count": 56
+        },
+        {
+          "subject": "PHTG",
+          "count": 49
+        },
+        {
+          "subject": "ECON",
+          "count": 43
+        },
+        {
+          "subject": "MUSI",
+          "count": 35
+        },
+        {
+          "subject": "CIS",
+          "count": 31
+        },
+        {
+          "subject": "PSYC",
+          "count": 27
+        },
+        {
+          "subject": "ENGR",
+          "count": 21
+        },
+        {
+          "subject": "ANTH",
+          "count": 19
+        }
+      ]
+    },
+    {
+      "term_code": "202722",
+      "total_conflicts": 916,
+      "top_subjects": [
+        {
+          "subject": "PHYS",
+          "count": 366
+        },
+        {
+          "subject": "CHEM",
+          "count": 292
+        },
+        {
+          "subject": "COMM",
+          "count": 225
+        },
+        {
+          "subject": "BIOL",
+          "count": 153
+        },
+        {
+          "subject": "MATH",
+          "count": 130
+        },
+        {
+          "subject": "ARTS",
+          "count": 130
+        },
+        {
+          "subject": "MUSI",
+          "count": 100
+        },
+        {
+          "subject": "ECON",
+          "count": 77
+        },
+        {
+          "subject": "NURS",
+          "count": 43
+        },
+        {
+          "subject": "ANTH",
+          "count": 40
+        },
+        {
+          "subject": "ACCT",
+          "count": 26
+        },
+        {
+          "subject": "POLI",
+          "count": 24
+        },
+        {
+          "subject": "BUS",
+          "count": 24
+        },
+        {
+          "subject": "HUMI",
+          "count": 22
+        },
+        {
+          "subject": "JOUR",
+          "count": 19
+        }
+      ]
+    },
+    {
+      "term_code": "202732",
+      "total_conflicts": 727,
+      "top_subjects": [
+        {
+          "subject": "PHYS",
+          "count": 185
+        },
+        {
+          "subject": "MATH",
+          "count": 177
+        },
+        {
+          "subject": "ARTS",
+          "count": 163
+        },
+        {
+          "subject": "BIOL",
+          "count": 162
+        },
+        {
+          "subject": "COMM",
+          "count": 143
+        },
+        {
+          "subject": "CHEM",
+          "count": 133
+        },
+        {
+          "subject": "MUSI",
+          "count": 66
+        },
+        {
+          "subject": "ACCT",
+          "count": 65
+        },
+        {
+          "subject": "ECON",
+          "count": 55
+        },
+        {
+          "subject": "PHIL",
+          "count": 32
+        },
+        {
+          "subject": "PSYC",
+          "count": 31
+        },
+        {
+          "subject": "CETH",
+          "count": 30
+        },
+        {
+          "subject": "SOC",
+          "count": 25
+        },
+        {
+          "subject": "PHTG",
+          "count": 24
+        },
+        {
+          "subject": "BUS",
+          "count": 17
+        }
+      ]
+    },
+    {
+      "term_code": "202742",
+      "total_conflicts": 309,
+      "top_subjects": [
+        {
+          "subject": "MUSI",
+          "count": 110
+        },
+        {
+          "subject": "ARTS",
+          "count": 103
+        },
+        {
+          "subject": "MATH",
+          "count": 61
+        },
+        {
+          "subject": "NURS",
+          "count": 50
+        },
+        {
+          "subject": "BIOL",
+          "count": 48
+        },
+        {
+          "subject": "PHTG",
+          "count": 45
+        },
+        {
+          "subject": "PHYS",
+          "count": 37
+        },
+        {
+          "subject": "CHEM",
+          "count": 34
+        },
+        {
+          "subject": "HUMI",
+          "count": 22
+        },
+        {
+          "subject": "PSYC",
+          "count": 13
+        },
+        {
+          "subject": "THEA",
+          "count": 12
+        },
+        {
+          "subject": "ECON",
+          "count": 12
+        },
+        {
+          "subject": "ANTH",
+          "count": 9
+        },
+        {
+          "subject": "PHIL",
+          "count": 8
+        },
+        {
+          "subject": "ESCI",
+          "count": 7
+        }
+      ]
+    }
+  ]
+}

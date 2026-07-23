@@ -89,6 +89,75 @@ CONFLICTS_API_URL=... CONFLICTS_API_KEY=... \
 - Quarters with no courses are skipped; quarters with fewer than two resolvable
   courses are stored with zero conflicts (no Lambda call needed).
 
+## Aggregate by department
+
+`aggregate_by_department.py` reads the stored conflict pairs and counts how
+often each subject (department) appears in a conflict. Each pair credits both
+sides — "MATH 1A vs CHEM 1A" counts once for MATH and once for CHEM.
+
+Outputs three views:
+1. **Per-subject ranking** — subjects sorted by total conflict appearances,
+   with the number of distinct pathways affected and the division label.
+2. **Division totals** — administrative divisions (from the schedule CSV
+   `Division` column) summed, showing which parts of the college generate
+   the most scheduling pressure.
+3. **Top cross-department pairs** — which two subjects most often collide
+   (includes intra-department pairs like "COMM vs COMM" meaning two different
+   COMM courses at the same time).
+
+```bash
+# All terms
+python scripts/pathway_conflicts/aggregate_by_department.py
+
+# One term only (Fall 2025)
+python scripts/pathway_conflicts/aggregate_by_department.py --term 202622
+
+# Write CSV files to data/reports/pathway_conflicts/
+python scripts/pathway_conflicts/aggregate_by_department.py --csv-report
+
+# Write JSON for the React web app to web-app/src/data/department_conflicts.json
+python scripts/pathway_conflicts/aggregate_by_department.py --json
+```
+
+Division mapping is built from the `Division` column in the schedule CSVs at
+`data/2025-26-class-schedule/`. If a subject isn't in those files it shows as
+`???`.
+
+### JSON output for the web app (`--json`)
+
+Writes `web-app/src/data/department_conflicts.json` — a single file the React
+app imports directly. Structure:
+
+```json
+{
+  "generated_at": "...",
+  "total_conflict_pairs": 10173,
+  "pathway_quarters_analyzed": 983,
+  "departments": [
+    { "subject": "COMM", "division_code": "2LA", "division_label": "Language Arts",
+      "conflict_appearances": 7912, "pathway_count": 111 }
+  ],
+  "divisions": [
+    { "division_code": "2LA", "division_label": "Language Arts",
+      "conflict_appearances": 8383, "subject_count": 5, "subjects": [...] }
+  ],
+  "pairs": [
+    { "subject_a": "CHEM", "subject_b": "MATH", "conflict_count": 993,
+      "is_intra_department": false }
+  ],
+  "terms": [
+    { "term_code": "202622", "total_conflicts": 2124,
+      "top_subjects": [{ "subject": "MATH", "count": 1223 }, ...] }
+  ]
+}
+```
+
+Visualization approaches the frontend can use:
+- `departments` → horizontal bar chart ranked by conflict count, colored by division.
+- `divisions` → pie/donut chart of scheduling pressure by college division.
+- `pairs` → chord diagram or heatmap showing which subjects clash most.
+- `terms` → grouped bar chart comparing conflict hotspots across quarters.
+
 ## Limitations & gotchas
 
 - **Section-level pairs.** `pairs_evaluated`/`conflict_count` are counted over

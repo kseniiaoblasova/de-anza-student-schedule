@@ -18,7 +18,12 @@ export default function ProgramDetails({ program, onClose }) {
     for (const [qKey, qName] of Object.entries(quarterLabel)) {
       const quarter = yearData[qKey]
       if (quarter.required_courses.length > 0 || quarter.additional_courses.length > 0) {
-        quarterOptions.push({ value: `${yearKey}|${qKey}`, label: `${yearName} — ${qName}`, yearKey, qKey })
+        // Flag quarters that carry schedule conflicts right in the dropdown label.
+        const c = program.conflictsByQuarter?.[`${yearKey}#${qKey}`]
+        const suffix = c && c.conflict_count > 0
+          ? `  \u26a0 ${c.conflict_count} conflict${c.conflict_count !== 1 ? 's' : ''}`
+          : ''
+        quarterOptions.push({ value: `${yearKey}|${qKey}`, label: `${yearName} — ${qName}${suffix}`, yearKey, qKey })
       }
     }
   }
@@ -31,6 +36,12 @@ export default function ProgramDetails({ program, onClose }) {
     const [yearKey, qKey] = selectedQuarter.split('|')
     return program.years[yearKey][qKey]
   })()
+
+  // Conflict record for the chosen quarter. The dropdown value joins with '|';
+  // the conflict data is keyed by quarter_key ("year_1#fall"), so swap to '#'.
+  const selectedConflict = selectedQuarter
+    ? program.conflictsByQuarter?.[selectedQuarter.replace('|', '#')]
+    : null
 
   // Collect prerequisite-like notes
   const prerequisites = program.additionalNotes.filter(
@@ -106,6 +117,59 @@ export default function ProgramDetails({ program, onClose }) {
                   ))}
                 </ul>
               </div>
+            )}
+          </div>
+        )}
+
+        {/* Schedule conflicts for the selected quarter */}
+        {selectedQuarter && (
+          <div className="quarter-conflicts">
+            <h4 className="quarter-courses-heading conflicts-heading">Schedule Conflicts</h4>
+
+            {!selectedConflict ? (
+              <p className="conflicts-note muted">No conflict analysis available for this quarter.</p>
+            ) : selectedConflict.conflict_count === 0 ? (
+              <p className="conflicts-note ok">
+                No time conflicts among this quarter's scheduled sections
+                {selectedConflict.section_count ? ` (${selectedConflict.section_count} sections checked)` : ''}.
+              </p>
+            ) : (
+              <>
+                <p className="conflicts-summary">
+                  {selectedConflict.conflict_count} conflicting section pair
+                  {selectedConflict.conflict_count !== 1 ? 's' : ''} among{' '}
+                  {selectedConflict.section_count} sections ({selectedConflict.conflict_percentage}%)
+                </p>
+                <ul className="conflict-list">
+                  {selectedConflict.conflicts.map((c, i) => (
+                    <li key={i} className="conflict-item">
+                      <div className="conflict-pair">
+                        <span className="conflict-course">
+                          {c.course_a} <span className="conflict-crn">CRN {c.crn_a}</span>
+                        </span>
+                        <span className="conflict-x">&times;</span>
+                        <span className="conflict-course">
+                          {c.course_b} <span className="conflict-crn">CRN {c.crn_b}</span>
+                        </span>
+                      </div>
+                      <div className="conflict-overlap">
+                        {(c.overlap.days || []).join('/')} &middot; {c.overlap.time_a}
+                        {c.overlap.time_b && c.overlap.time_b !== c.overlap.time_a
+                          ? ` / ${c.overlap.time_b}`
+                          : ''}
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+
+            {/* Courses with no section in the term — excluded from the analysis,
+                surfaced so they aren't mistaken for clash-free. */}
+            {selectedConflict && selectedConflict.missing_courses.length > 0 && (
+              <p className="conflicts-missing muted">
+                Not offered / unmatched this term: {selectedConflict.missing_courses.join(', ')}
+              </p>
             )}
           </div>
         )}

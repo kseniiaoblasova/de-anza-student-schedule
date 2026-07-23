@@ -617,3 +617,84 @@ body {
     font-size: 1.25rem;
   }
 }
+
+/* ===== Schedule conflicts ===== */
+
+/* Card badge: red for hot spots, green when a pathway is clash-free */
+.conflict-flag {
+  margin-top: 0.6rem;
+  display: inline-block;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+}
+.conflict-flag.has-conflicts {
+  background: var(--da-red-lighter);
+  color: var(--da-red);
+}
+.conflict-flag.no-conflicts {
+  background: #eef7ee;
+  color: #2f7d32;
+}
+
+/* Conflicts panel inside the details modal */
+.quarter-conflicts {
+  margin-top: 1.5rem;
+}
+.conflicts-heading {
+  color: var(--da-red);
+}
+.conflicts-note {
+  font-size: 0.9rem;
+}
+.conflicts-note.ok {
+  color: #2f7d32;
+}
+.conflicts-note.muted,
+.conflicts-missing.muted {
+  color: var(--text-muted);
+}
+.conflicts-summary {
+  font-weight: 600;
+  color: var(--da-red);
+  margin-bottom: 0.6rem;
+}
+.conflict-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.conflict-item {
+  background: var(--bg-white);
+  border: 1px solid var(--border-color);
+  border-left: 3px solid var(--da-red);
+  border-radius: var(--radius);
+  padding: 0.5rem 0.75rem;
+}
+.conflict-pair {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  font-weight: 600;
+}
+.conflict-crn {
+  font-weight: 400;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+.conflict-x {
+  color: var(--da-red);
+  font-weight: 700;
+}
+.conflict-overlap {
+  margin-top: 0.15rem;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+}
+.conflicts-missing {
+  margin-top: 0.6rem;
+  font-size: 0.82rem;
+}

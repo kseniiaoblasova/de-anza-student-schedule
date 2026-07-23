@@ -82,6 +82,18 @@ CONFLICTS_API_URL=... CONFLICTS_API_KEY=... \
   python scripts/pathway_conflicts/build_conflicts.py --mode http --apply
 ```
 
+## Web export
+
+`export_web_data.py` dumps this table to the JSON the React app bundles
+(`web-app/src/data/pathway_conflicts.json`): a scan, trimmed to the fields the UI
+renders (Decimals → numbers), nested as `pathway_id → quarter_key → summary`.
+Course codes are already canonical here, so no reshaping is needed. Rerun it
+after any `--apply` rebuild. See `.kiro/docs/web-app.md` for the frontend join.
+
+```bash
+python scripts/pathway_conflicts/export_web_data.py
+```
+
 ## Current load (workshop account, us-west-2)
 
 - 238 pathways → **983 pathway-quarter items** (quarters with courses).

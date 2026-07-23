@@ -5,6 +5,7 @@
  */
 
 import rawData from './deanza_pathways.json'
+import conflictData from './pathway_conflicts.json'
 
 /**
  * Count the actual number of distinct course requirements in a quarter's course list.
@@ -75,8 +76,8 @@ function isDefinitelyNewRequirement(line) {
   // A course code with "(formerly...)" qualifier — self-contained entry
   // e.g. "ENGL C1000 (formerly EWRT 1A) or ESL 5 as required"
   if (/^[A-Z]{2,5}\s+[A-Z]?\d+/.test(line) &&
-      line.includes('(formerly') &&
-      !line.includes(';')) return true
+    line.includes('(formerly') &&
+    !line.includes(';')) return true
 
   // A course with "-- six weeks" type annotation (auto programs)
   if (/^[A-Z]{2,5}\s+\d+[A-Z]?\s+--\s+/.test(line)) return true
@@ -85,8 +86,8 @@ function isDefinitelyNewRequirement(line) {
   // e.g. "PHYS 4A", "BIOL 6A" — but NOT "ARTS 2A, ARTS 2G or ARTS 2J"
   // Must: start with course code, no commas, no semicolons, no "or" with another code after
   if (/^[A-Z]{2,5}\s+\d+[A-Z]?\s/.test(line) &&
-      !line.includes(',') && !line.includes(';') &&
-      !/\sor\s+[A-Z]{2,5}\s+\d/.test(line)) {
+    !line.includes(',') && !line.includes(';') &&
+    !/\sor\s+[A-Z]{2,5}\s+\d/.test(line)) {
     // But exclude things like "Science, complete one" or "Quarter Area: ARTS..."
     if (!/^(Science|Drawing|Painting|Ceramics|Sculpture|Digital|Photography|Color|Quarter)/i.test(line)) {
       return true
@@ -110,7 +111,7 @@ function startsMultiLineBlock(line) {
 
   // Any line ending with colon, comma, semicolon, "or"
   if (line.endsWith(':') || line.endsWith(',') || line.endsWith(';') ||
-      line.endsWith(' or')) return true
+    line.endsWith(' or')) return true
 
   // Lines ending with "(formerly" or "(formerly "
   if (line.endsWith('(formerly') || line.endsWith('(formerly ')) return true
@@ -166,9 +167,20 @@ function transformPathway(pathway, index) {
   // Determine pathway duration based on whether year 2 has any courses
   const year2HasCourses = ['fall', 'winter', 'spring'].some(
     (q) => pathway.years.year_2[q].required_courses.length > 0 ||
-           pathway.years.year_2[q].additional_courses.length > 0
+      pathway.years.year_2[q].additional_courses.length > 0
   )
   const pathwayYears = year2HasCourses ? 2 : 1
+
+  // Join precomputed schedule conflicts by the backend's identity key
+  // ("<source_file>#<page_number>"). conflictsByQuarter is keyed by quarter_key
+  // ("year_1#fall"); totalConflicts rolls the section-pair clashes up for the card.
+  const pathwayId = `${pathway.source_file}#${pathway.page_number}`
+  const conflictsByQuarter = conflictData[pathwayId] || {}
+  const quarterKeys = Object.keys(conflictsByQuarter)
+  const totalConflicts = quarterKeys.reduce(
+    (sum, k) => sum + (conflictsByQuarter[k].conflict_count || 0),
+    0
+  )
 
   return {
     id: index + 1,
@@ -185,6 +197,11 @@ function transformPathway(pathway, index) {
     additionalNotes: pathway.additional_notes,
     sourceFile: pathway.source_file,
     pageNumber: pathway.page_number,
+    pathwayId,
+    conflictsByQuarter,
+    hasConflictData: quarterKeys.length > 0,
+    totalConflicts,
+    hasConflicts: totalConflicts > 0,
   }
 }
 
@@ -250,7 +267,7 @@ function getPopularityRank(program) {
     ['liberal arts', 'transfer studies'],
     // Tier 13: Trades & vocational
     ['automotive', 'auto ', 'machinist', 'machining', 'cnc', 'manufacturing', 'welding', 'smog',
-     'chassis', 'powertrain', 'engine perform', 'paralegal'],
+      'chassis', 'powertrain', 'engine perform', 'paralegal'],
     // Tier 14: Kinesiology & misc
     ['kinesiology', 'leadership'],
   ]

@@ -899,3 +899,72 @@ body {
   color: #2f7d32;
   font-weight: 700;
 }
+
+/* ===== Recommended course map (informational) ===== */
+.program-map {
+  margin: 2rem 0 1.5rem;
+}
+
+.map-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--da-red);
+  margin-bottom: 0.35rem;
+}
+
+.map-note {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin-bottom: 1.25rem;
+}
+
+.map-year {
+  margin-bottom: 1.5rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.map-year-banner {
+  background: var(--da-red);
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  padding: 0.6rem 1rem;
+}
+
+.map-quarters {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  padding: 1rem;
+}
+
+.map-quarter-heading {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--da-red-dark);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.6rem;
+  padding-bottom: 0.35rem;
+  border-bottom: 2px solid var(--da-gold);
+}
+
+.map-additional-label {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0.6rem 0 0.35rem;
+}
+
+/* Stack the three quarters on narrow screens */
+@media (max-width: 640px) {
+  .map-quarters {
+    grid-template-columns: 1fr;
+  }
+}

@@ -80,6 +80,15 @@ backend's per-quarter conflict analysis (`deanza-pathway-conflicts`) so the
   line. Loading/error states are handled inline; changing the term or a chip
   invalidates the shown result, and the whole planner resets when a different
   pathway opens (keyed on `pathwayId` in a `useEffect`).
+- **Recommended course map (`ProgramMap`).** Below the planner, an informational
+  grid shows the pathway's suggested plan by year and quarter, rendering the
+  verbose `required_courses` / `additional_courses` text straight from the pathway
+  JSON (De Anza red year banner, gold quarter headers). Read-only — it's the
+  overall picture; selection still happens through the chips. Note the electives
+  it lists are already selectable as chips: the real elective options live inside
+  `required_courses` text ("Complete N units from List A: …", GE-area course
+  choices) and were extracted into `courseCodes` by the backend normalization;
+  the `additional_courses` field is mostly sparse footnotes.
 - **Where the chips come from.** The verbose `required_courses` text isn't clean
   codes, so `transformPathway` derives `courseCodes` — the sorted union of every
   quarter's `courses` + `missing_courses` from the precomputed conflict data

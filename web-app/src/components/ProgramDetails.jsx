@@ -189,6 +189,10 @@ export default function ProgramDetails({ program, onClose }) {
           )}
         </div>
 
+        {/* Recommended course map — the program's suggested plan by term, for
+            reference. Selection still happens via the chips above. */}
+        <ProgramMap years={program.years} />
+
         {/* Prerequisites */}
         {prerequisites.length > 0 && (
           <div className="details-section">
@@ -221,6 +225,70 @@ export default function ProgramDetails({ program, onClose }) {
           </span>
         </div>
       </div>
+    </div>
+  )
+}
+
+const YEAR_LABELS = { year_1: 'First Year', year_2: 'Second Year' }
+const QUARTER_LABELS = { fall: 'Fall', winter: 'Winter', spring: 'Spring' }
+const QUARTER_ORDER = ['fall', 'winter', 'spring']
+
+/** True when a quarter cell lists any required or additional course text. */
+function quarterHasContent(cell) {
+  return (cell.required_courses?.length || 0) + (cell.additional_courses?.length || 0) > 0
+}
+
+/**
+ * Informational program map: the pathway's suggested plan laid out by year and
+ * quarter, straight from the pathway JSON's verbose course text. Read-only —
+ * students pick what they'll actually take from the chips in the planner above.
+ */
+function ProgramMap({ years }) {
+  const activeYears = Object.keys(YEAR_LABELS).filter((y) =>
+    QUARTER_ORDER.some((q) => quarterHasContent(years[y][q]))
+  )
+  if (activeYears.length === 0) return null
+
+  return (
+    <div className="program-map">
+      <h3 className="map-title">Recommended course map</h3>
+      <p className="map-note">
+        The program's suggested plan by term, from the pathway map. For reference —
+        choose the courses you'll actually take from the chips above.
+      </p>
+      {activeYears.map((y) => (
+        <div key={y} className="map-year">
+          <div className="map-year-banner">{YEAR_LABELS[y]}</div>
+          <div className="map-quarters">
+            {QUARTER_ORDER.map((q) => {
+              const cell = years[y][q]
+              if (!quarterHasContent(cell)) return null
+              return (
+                <div key={q} className="map-quarter">
+                  <h4 className="map-quarter-heading">{QUARTER_LABELS[q]}</h4>
+                  {cell.required_courses.length > 0 && (
+                    <ul className="course-list">
+                      {cell.required_courses.map((line, i) => (
+                        <li key={i} className="course-item">{line}</li>
+                      ))}
+                    </ul>
+                  )}
+                  {cell.additional_courses.length > 0 && (
+                    <>
+                      <div className="map-additional-label">Additional / Elective</div>
+                      <ul className="course-list">
+                        {cell.additional_courses.map((line, i) => (
+                          <li key={i} className="course-item additional">{line}</li>
+                        ))}
+                      </ul>
+                    </>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      ))}
     </div>
   )
 }

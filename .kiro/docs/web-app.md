@@ -104,6 +104,40 @@ backend's per-quarter conflict analysis (`deanza-pathway-conflicts`) so the
   `#c49a1a`) as CSS variables; cards and badges are color-coded by credential
   type in `ProgramCard`.
 
+## Chat assistant
+
+A floating "Pathway Assistant" widget (`ChatWidget.jsx` + `chat/chatEngine.js`,
+mounted once in `App`) answers questions in the browser — **no LLM**. Chosen over
+a Bedrock chatbot because a prior attempt hit token limits, and a retrieval bot
+needs no model, no credentials, and can't blow a token budget — reliable for a
+live demo.
+
+`chatEngine.answer(question)` recognizes three intents and answers from data
+already in the app, reaching the network only for live conflict checks:
+- **Schedule conflict** ("does MATH 1A conflict with ENGL 1A in Fall 2026?") —
+  needs ≥2 course codes + a term; POSTs to the keyless `/plan` endpoint and turns
+  the overlap/clear counts into a plain-language verdict (fully clear / pick
+  sections carefully / impossible). This is the only intent that calls the network.
+- **Course lookup** ("which pathways include CIS 22A?") — scans every pathway's
+  `courseCodes`.
+- **Pathway/requirement** ("courses in the Computer Science pathway first year") —
+  matches a pathway by word overlap and lists its recommended courses, optionally
+  filtered to a year/quarter.
+
+How the parsing stays honest: course tokens are validated against `KNOWN_SUBJECTS`
+(every subject in the data) so prose like "Area 3" isn't mistaken for a course;
+terms are matched against `TERMS` labels ("Fall 2026" → `202722`); pathway
+matching scores question words against program names, with a `STOP` set so
+scaffolding words ("courses", "pathway") don't trigger false matches. Everything
+is bundled/precomputed except the `/plan` call, so it works offline except for the
+conflict intent.
+
+Decision — retrieval, not generative: answers are templated, so phrasing is fixed
+and it only handles the three intents above; anything else returns a help message.
+That's the intended tradeoff for demo reliability. Swapping in an LLM later would
+mean a backend that retrieves just the relevant slice (not the whole dataset) to
+avoid the original token problem.
+
 ## Run it locally
 
 Requires Node (tested on v24) and npm. From `web-app/`:

@@ -11,9 +11,10 @@ schedule-vs-program-map conflict analysis.
 | `deanza-pathways` | ~238 program-pathway maps | PK `pathway_id` | 238 |
 | `deanza-pathways-normalized` | pathways with cleaned canonical course lists | PK `pathway_id` | 238 |
 | `deanza-class-schedule` | class sections, both schedule years | PK `term_code` + SK `section_key` | 25,811 |
+| `deanza-pathway-conflicts` | per-pathway per-quarter schedule conflicts | PK `pathway_id` + SK `quarter_key`; GSI `term-index` | 983 |
 
 - **Region:** `us-west-2`
-- **Billing:** both tables are on-demand (`PAY_PER_REQUEST`) — no capacity
+- **Billing:** all tables are on-demand (`PAY_PER_REQUEST`) — no capacity
   tuning, negligible cost for these volumes.
 - **Credentials:** temporary STS keys in `.env` (`AWS_ACCESS_KEY_ID` starting
   `ASIA`, plus `AWS_SECRET_ACCESS_KEY` and `AWS_SESSION_TOKEN`). They expire;
@@ -153,6 +154,31 @@ and the suffix is **12=Summer, 22=Fall, 32=Winter, 42=Spring**.
 
 ---
 
+## Table: `deanza-pathway-conflicts`
+
+Per-pathway, per-quarter schedule conflicts, computed by sending each quarter's
+course sections to the deployed conflict Lambda. Backs the React app and further
+analysis. See `.kiro/docs/pathway-conflicts.md` for the full pipeline.
+
+- **Key:** partition `pathway_id`, sort `quarter_key` = `"{year}#{quarter}"`
+  (e.g. `year_1#fall`) — "all quarters of a pathway" in one query.
+- **GSI `term-index`:** partition `term_code`, sort `pathway_id` — "all pathways
+  in a quarter" (cross-pathway view).
+- **Attributes:** `program_name`, `village`, `credential_type`, `year`, `quarter`,
+  `term_code`, `resolved_courses`, `missing_courses`, `course_count`,
+  `section_count`, `pairs_evaluated`, `conflict_count`, `conflict_percentage`,
+  `conflicts` (list of section-pair clashes with metadata).
+- **Items:** 983 pathway-quarters (238 pathways; quarters with courses).
+- Quarter → term mapping: year_1 = AY2025-26 (`202622/202632/202642`), year_2 =
+  AY2026-27 (`202722/202732/202742`).
+
+```bash
+python scripts/pathway_conflicts/build_conflicts.py                       # dry run
+python scripts/pathway_conflicts/build_conflicts.py --apply --create-table
+```
+
+---
+
 ## Scripts
 
 ```
@@ -169,6 +195,12 @@ scripts/
     normalization.py  pathway_parser.py   pure course-code logic
     normalize_pathways.py                 -> deanza-pathways-normalized
     audit_matches.py                      pathway<->schedule coverage report
+  conflicts/
+    time_parsing.py  conflict_engine.py   pure overlap logic (Lambda code)
+    lambda_handler.py                     deployed deanza-schedule-conflicts
+  pathway_conflicts/
+    resolve.py  conflict_client.py        pure resolve + Lambda client
+    build_conflicts.py                    -> deanza-pathway-conflicts
 ```
 
 `TABLE_SCHEMAS` in `common.py` is the single source of truth for key schemas;

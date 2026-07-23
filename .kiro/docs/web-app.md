@@ -67,7 +67,13 @@ backend's per-quarter conflict analysis (`deanza-pathway-conflicts`) so the
     AS > AA > certificate).
 - **Interactive planner (`ProgramDetails`).** Three steps: pick a term (the six
   `TERMS` from `config.js`), click the pathway's course chips (multi-select), then
-  "Check my schedule" (enabled once a term and ≥2 courses are chosen). That POSTs
+  "Check my schedule" (enabled once a term and ≥2 courses are chosen). Once a term
+  is chosen, a **"Recommended this quarter"** chip row appears above the full list,
+  showing just the courses the program map places in the quarter that term maps to
+  (`TERMS[].quarterKey` → `conflictsByQuarter`). Both rows render via one shared
+  `renderChip` and toggle the same `selected` Set, so picking a recommended course
+  also lights it up in the full list — the two rows are alternate entry points into
+  one selection, not independent state. That POSTs
   `{ term_code, courses }` to `PLAN_API_URL` and renders the `<PlanResult>` child:
   a percentage verdict, the "can't take together" overlap list (each pair's shared
   days + times), a collapsed "fit together" list, and the "not offered this term"

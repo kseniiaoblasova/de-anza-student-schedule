@@ -12,13 +12,15 @@ export const PLAN_API_URL =
 /**
  * Selectable terms, newest-catalog first. Codes match deanza-class-schedule
  * partitions (…22 = Fall, …32 = Winter, …42 = Spring); both loaded academic
- * years are offered.
+ * years are offered. `quarterKey` ties a term to the pathway quarter it maps to
+ * (same mapping as the backend's YEAR_QUARTER_TO_TERM) so the UI can surface that
+ * quarter's recommended courses; it matches the keys in `conflictsByQuarter`.
  */
 export const TERMS = [
-  { code: '202722', label: 'Fall 2026' },
-  { code: '202732', label: 'Winter 2027' },
-  { code: '202742', label: 'Spring 2027' },
-  { code: '202622', label: 'Fall 2025' },
-  { code: '202632', label: 'Winter 2026' },
-  { code: '202642', label: 'Spring 2026' },
+  { code: '202722', label: 'Fall 2026', quarterKey: 'year_2#fall' },
+  { code: '202732', label: 'Winter 2027', quarterKey: 'year_2#winter' },
+  { code: '202742', label: 'Spring 2027', quarterKey: 'year_2#spring' },
+  { code: '202622', label: 'Fall 2025', quarterKey: 'year_1#fall' },
+  { code: '202632', label: 'Winter 2026', quarterKey: 'year_1#winter' },
+  { code: '202642', label: 'Spring 2026', quarterKey: 'year_1#spring' },
 ]

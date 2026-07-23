@@ -36,6 +36,20 @@ export default function ProgramDetails({ program, onClose }) {
   const courseCodes = program.courseCodes || []
   const canCheck = termCode && selected.size >= 2 && status !== 'loading'
 
+  // One chip, shared by the "recommended" and "all courses" rows so a click in
+  // either toggles the same selection.
+  const renderChip = (code) => (
+    <button
+      key={code}
+      type="button"
+      className={`chip${selected.has(code) ? ' selected' : ''}`}
+      aria-pressed={selected.has(code)}
+      onClick={() => toggleCourse(code)}
+    >
+      {code}
+    </button>
+  )
+
   // Call the keyless planner endpoint with the chosen term + courses.
   const checkSchedule = async () => {
     setStatus('loading')
@@ -65,7 +79,17 @@ export default function ProgramDetails({ program, onClose }) {
       note.toLowerCase().includes('must also take')
   )
 
-  const termLabel = TERMS.find((t) => t.code === termCode)?.label || ''
+  const selectedTerm = TERMS.find((t) => t.code === termCode)
+  const termLabel = selectedTerm?.label || ''
+
+  // Courses the program map recommends for the quarter this term maps to — a
+  // subset of the full list, from the same precomputed conflict data. Selecting
+  // one toggles the shared selection, so it also lights up in the full list.
+  const recommendedCourses = (() => {
+    const q = selectedTerm && program.conflictsByQuarter?.[selectedTerm.quarterKey]
+    if (!q) return []
+    return [...new Set([...(q.courses || []), ...(q.missing_courses || [])])].sort()
+  })()
 
   return (
     <div className="details-overlay" onClick={onClose}>
@@ -116,7 +140,20 @@ export default function ProgramDetails({ program, onClose }) {
             </select>
           </div>
 
-          {/* Step 2 — courses (chips) */}
+          {/* Recommended for the quarter this term maps to (program map). Shares
+              the selection with the full list below — a click here lights up there. */}
+          {termCode && recommendedCourses.length > 0 && (
+            <div className="planner-step">
+              <label className="planner-label recommended-label">
+                Recommended this quarter <span className="recommended-hint">from the {program.shortName} map</span>
+              </label>
+              <div className="course-chips">
+                {recommendedCourses.map(renderChip)}
+              </div>
+            </div>
+          )}
+
+          {/* Step 2 — full course list (chips) */}
           <div className="planner-step">
             <label className="planner-label">
               2. Choose courses{selected.size > 0 ? ` (${selected.size} selected)` : ''}
@@ -127,17 +164,7 @@ export default function ProgramDetails({ program, onClose }) {
               </p>
             ) : (
               <div className="course-chips">
-                {courseCodes.map((code) => (
-                  <button
-                    key={code}
-                    type="button"
-                    className={`chip${selected.has(code) ? ' selected' : ''}`}
-                    aria-pressed={selected.has(code)}
-                    onClick={() => toggleCourse(code)}
-                  >
-                    {code}
-                  </button>
-                ))}
+                {courseCodes.map(renderChip)}
               </div>
             )}
           </div>

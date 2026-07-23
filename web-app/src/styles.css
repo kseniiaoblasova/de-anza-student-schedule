@@ -749,6 +749,14 @@ body {
   margin-bottom: 0.5rem;
 }
 
+.recommended-hint {
+  font-weight: 500;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  text-transform: none;
+  letter-spacing: 0;
+}
+
 /* Course selection chips */
 .course-chips {
   display: flex;

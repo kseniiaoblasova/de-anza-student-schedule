@@ -1,7 +1,7 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-09
 Description: >
-  Schedule-conflict services. Two Lambdas behind API Gateway:
+  Schedule-conflict services and chatbot. Three Lambdas behind API Gateway:
 
   - ConflictFunction (/conflicts, API key required): stateless, takes a list of
     course sections and returns conflicting cross-course section pairs (day +
@@ -10,16 +10,25 @@ Description: >
     and canonical course codes, it reads that term's sections from
     deanza-class-schedule itself and returns the overlap/clear split with a
     percentage. Called directly by the browser app, so it is public.
+  - ChatFunction (/chat, NO API key): Bedrock chatbot. Reads DynamoDB tables
+    on cold start, answers student questions about schedules, pathways, and
+    conflicts via Amazon Bedrock Converse API.
 
   NOTE: a REST API (not HTTP API) is used because API keys + usage plans — the
-  auth model for /conflicts — are a REST API feature. /plan opts out per-method
-  with ApiKeyRequired: false.
+  auth model for /conflicts — are a REST API feature. /plan and /chat opt out
+  per-method with ApiKeyRequired: false.
 
 Globals:
   Function:
     Runtime: python3.12
     Timeout: 15
     MemorySize: 256
+
+Parameters:
+  BedrockModelId:
+    Type: String
+    Default: amazon.nova-lite-v1:0
+    Description: Bedrock model ID for the chatbot (must support Converse API)
 
 Resources:
   # REST API with an API key required on every call, a usage plan for
@@ -94,6 +103,49 @@ Resources:
             Auth:
               ApiKeyRequired: false
 
+  # Bedrock chatbot — reads the three DynamoDB tables on cold start, summarizes
+  # the data, and answers student questions via Bedrock Converse API. Public
+  # endpoint (no API key) since the data is published schedule info.
+  ChatFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: deanza-schedule-chatbot
+      CodeUri: ../scripts/chatbot
+      Handler: index.handler
+      Runtime: nodejs22.x
+      Timeout: 60
+      MemorySize: 1024
+      Description: Bedrock chatbot backed by DynamoDB schedule/pathway/conflict data
+      Environment:
+        Variables:
+          BEDROCK_MODEL_ID: !Ref BedrockModelId
+          ALLOWED_ORIGIN: "*"
+          SCHEDULE_TABLE: deanza-class-schedule
+          CONFLICTS_TABLE: deanza-pathway-conflicts
+          PATHWAYS_TABLE: deanza-pathways-normalized
+      Policies:
+        - Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Action:
+                - bedrock:InvokeModel
+              Resource: "*"
+        - DynamoDBReadPolicy:
+            TableName: deanza-class-schedule
+        - DynamoDBReadPolicy:
+            TableName: deanza-pathway-conflicts
+        - DynamoDBReadPolicy:
+            TableName: deanza-pathways-normalized
+      Events:
+        ChatPost:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ConflictApi
+            Path: /chat
+            Method: post
+            Auth:
+              ApiKeyRequired: false
+
 Outputs:
   ApiEndpoint:
     Description: 'POST here with a JSON body {sections: [...]} and header x-api-key'
@@ -104,3 +156,6 @@ Outputs:
   ApiKeyRetrieval:
     Description: Fetch the generated API key value
     Value: !Sub "aws apigateway get-api-keys --name-query ${AWS::StackName} --include-values --query 'items[0].value' --output text"
+  ChatEndpoint:
+    Description: 'POST here with {messages:[{role,content}]} — no API key'
+    Value: !Sub "https://${ConflictApi}.execute-api.${AWS::Region}.amazonaws.com/prod/chat"

@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react'
 import SearchFilter from './components/SearchFilter'
 import ProgramList from './components/ProgramList'
 import ProgramDetails from './components/ProgramDetails'
+import ChatWidget from './components/ChatWidget'
 import { pathwayData, metadata } from './data/pathways'
 
 export default function App() {
@@ -78,6 +79,8 @@ export default function App() {
       {selectedProgram && (
         <ProgramDetails program={selectedProgram} onClose={handleCloseDetails} />
       )}
+
+      <ChatWidget />
     </div>
   )
 }

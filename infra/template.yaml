@@ -1,0 +1,67 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-09
+Description: >
+  Schedule-conflict service. A stateless Lambda behind API Gateway that takes a
+  list of course sections and returns conflicting cross-course section pairs
+  (day + time overlap). Called by the pathway-conflict script and by the
+  scheduler-facing tool.
+
+  NOTE: a REST API (not HTTP API) is used because API keys + usage plans — the
+  chosen auth model — are a REST API feature.
+
+Globals:
+  Function:
+    Runtime: python3.12
+    Timeout: 15
+    MemorySize: 256
+
+Resources:
+  # REST API with an API key required on every call, a usage plan for
+  # throttling/quota, and CORS so the browser-based tool can call it.
+  ConflictApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: prod
+      Auth:
+        ApiKeyRequired: true
+        UsagePlan:
+          CreateUsagePlan: PER_API
+          Description: Throttle + quota for the conflict service
+          Throttle:
+            BurstLimit: 20
+            RateLimit: 10
+          Quota:
+            Limit: 100000
+            Period: MONTH
+      Cors:
+        # Tighten AllowOrigin to the tool's domain before real use.
+        AllowMethods: "'POST,OPTIONS'"
+        AllowHeaders: "'Content-Type,x-api-key'"
+        AllowOrigin: "'*'"
+
+  # The conflict-detection function. CodeUri is the whole scripts/ dir so the
+  # `conflicts` package sits at the deployment root and its internal
+  # `from conflicts...` imports resolve; only the conflicts package is used and
+  # it is pure stdlib (no extra dependencies to bundle).
+  ConflictFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: deanza-schedule-conflicts
+      CodeUri: ../scripts
+      Handler: conflicts.lambda_handler.handler
+      Description: Detect day+time overlaps among a list of course sections
+      Events:
+        DetectConflicts:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ConflictApi
+            Path: /conflicts
+            Method: post
+
+Outputs:
+  ApiEndpoint:
+    Description: 'POST here with a JSON body {sections: [...]} and header x-api-key'
+    Value: !Sub "https://${ConflictApi}.execute-api.${AWS::Region}.amazonaws.com/prod/conflicts"
+  ApiKeyRetrieval:
+    Description: Fetch the generated API key value
+    Value: !Sub "aws apigateway get-api-keys --name-query ${AWS::StackName} --include-values --query 'items[0].value' --output text"

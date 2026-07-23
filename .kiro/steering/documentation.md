@@ -30,3 +30,8 @@ someone understand or maintain the system, cut it.
 
 **Keep it true.** When you later change the code, update its doc in the same
 edit. A stale decision log is worse than none.
+
+**No personal names.** Never reference team members by name in docs (or code
+comments). Describe people by their role or component instead — "the
+scheduler-facing tool," "the pathway-conflict script," "the caller." Names go
+stale, don't travel, and aren't the reader's concern.

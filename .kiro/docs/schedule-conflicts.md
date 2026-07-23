@@ -145,7 +145,8 @@ role, since `iam:CreateRole` isn't needed and the function only logs), then
 `apigateway` calls to create the REST API, `/conflicts` POST (api-key required),
 `AWS_PROXY` integration, `lambda add-permission`, a `prod` deployment, and an API
 key + usage plan. No IAM role was created; no Docker needed (pure stdlib, nothing
-to build).
+to build). CORS was added later with an `OPTIONS /conflicts` method (Lambda proxy,
+no api key) plus CORS headers from the Lambda, then a fresh `prod` deployment.
 
 ### Current live deployment (workshop account, us-west-2)
 
@@ -164,8 +165,38 @@ deanza-schedule-conflicts --zip-file fileb://<zip>`.
 > **Auth:** a REST API is used (not HTTP API) because API keys + usage plans are a
 > REST API feature. Every call requires an `x-api-key` header; the usage plan
 > throttles and caps monthly quota. Verified: a request without the key returns
-> `403`. **CORS is not yet configured** (no OPTIONS/browser preflight) — the
-> current callers are server-side; add CORS before the browser tool calls it.
+> `403`.
+
+### CORS (browser/React callers)
+
+CORS is configured, so the endpoint is callable from a browser:
+
+- The Lambda returns `Access-Control-Allow-Origin` (and `-Headers`/`-Methods`) on
+  **every** response, including errors, so the browser can read them.
+- An `OPTIONS /conflicts` method (Lambda proxy, **no API key**) answers the
+  browser's preflight with `204` + CORS headers. Preflight carries no key because
+  browsers don't send custom headers on it; the actual `POST` still requires the
+  key.
+- Allowed origin is `*` by default, from the `CORS_ALLOW_ORIGIN` Lambda env var.
+  **Tighten it** to the frontend's origin (e.g. `https://app.example.edu`) for
+  real use: `aws lambda update-function-configuration --function-name
+  deanza-schedule-conflicts --environment "Variables={CORS_ALLOW_ORIGIN=https://…}"`.
+
+Verified live: preflight `OPTIONS` → `204` with CORS headers (no key); `POST` with
+key + `Origin` → `200` with `Access-Control-Allow-Origin`.
+
+From React (`fetch`):
+
+```js
+await fetch(API_URL, {
+  method: "POST",
+  headers: { "Content-Type": "application/json", "x-api-key": API_KEY },
+  body: JSON.stringify({ term_code: "202722", sections }),
+});
+```
+
+Note: shipping the API key in browser code exposes it. For a public frontend,
+prefer proxying through a small backend, or restrict the key's usage-plan quota.
 
 ## Calling it
 

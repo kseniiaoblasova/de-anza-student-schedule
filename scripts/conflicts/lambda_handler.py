@@ -15,18 +15,47 @@ Request body:
     }
 
 Response: 200 with the engine report, 400 for bad input, 500 otherwise.
+
+CORS: every response carries CORS headers and an OPTIONS preflight is answered
+(without requiring the API key) so a browser/React client can call the endpoint.
+The allowed origin comes from CORS_ALLOW_ORIGIN (default "*"); set it to the
+frontend's origin to lock things down.
 """
 
+import os
 import json
 import base64
 
 from conflicts.conflict_engine import find_conflicts
 
-_JSON_HEADERS = {"Content-Type": "application/json"}
+
+def _cors_headers():
+    """CORS headers for browser callers. Origin is env-configurable."""
+    return {
+        "Access-Control-Allow-Origin": os.environ.get("CORS_ALLOW_ORIGIN", "*"),
+        "Access-Control-Allow-Headers": "Content-Type,x-api-key",
+        "Access-Control-Allow-Methods": "POST,OPTIONS",
+    }
 
 
 def _response(status, payload):
-    return {"statusCode": status, "headers": _JSON_HEADERS, "body": json.dumps(payload)}
+    headers = {"Content-Type": "application/json", **_cors_headers()}
+    return {"statusCode": status, "headers": headers, "body": json.dumps(payload)}
+
+
+def _request_method(event):
+    """The HTTP method for an API Gateway event (REST v1 or HTTP v2), else None."""
+    if not isinstance(event, dict):
+        return None
+    if event.get("httpMethod"):                       # REST API (v1)
+        return event["httpMethod"]
+    # HTTP API (v2)
+    return event.get("requestContext", {}).get("http", {}).get("method")
+
+
+def _preflight_response():
+    """Answer a CORS preflight: 204, CORS headers, empty body, no API key needed."""
+    return {"statusCode": 204, "headers": _cors_headers(), "body": ""}
 
 
 def _extract_payload(event):
@@ -50,6 +79,11 @@ def _extract_payload(event):
 
 def handler(event, context=None):
     """Lambda handler: validate, detect conflicts, return an HTTP response."""
+    # Short-circuit CORS preflight before any validation (browsers send OPTIONS
+    # with no body and no API key).
+    if _request_method(event) == "OPTIONS":
+        return _preflight_response()
+
     # Unwrap and parse the request body.
     try:
         payload = _extract_payload(event)
@@ -66,7 +100,8 @@ def handler(event, context=None):
         report = find_conflicts(
             sections,
             require_day_overlap=bool(payload.get("require_day_overlap", True)),
-            require_date_overlap=bool(payload.get("require_date_overlap", False)),
+            require_date_overlap=bool(
+                payload.get("require_date_overlap", False)),
         )
         if payload.get("term_code"):
             report["term_code"] = payload["term_code"]

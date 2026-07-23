@@ -97,8 +97,9 @@ Full schemas, keys, term-code reference, and load commands: `dynamodb.md`.
   and `deanza-pathway-conflicts` holds 983 items.
 - **Git**: this work spans feature branches; `all-class-conflicts` currently
   integrates all of it but is not pushed to `origin` or merged to `main`.
-- **CORS** is not yet on the conflict API — needed before a browser/React client
-  can call it directly (server-side callers work today).
+- **CORS** is configured on the conflict API (OPTIONS preflight + headers), so a
+  browser/React client can call it. Allowed origin defaults to `*` — tighten
+  `CORS_ALLOW_ORIGIN` to the frontend origin for production.
 - **Not built yet**: a schedule-feasibility metric (can a full clash-free load be
   built), and any UI. Enrollment weighting of "hot spots" is possible but unused.
 - **Deploy note**: the workshop SSO role is denied the SAM/CloudFormation

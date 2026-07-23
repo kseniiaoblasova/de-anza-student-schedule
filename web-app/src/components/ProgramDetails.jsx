@@ -1,10 +1,38 @@
+import { useState } from 'react'
+
 export default function ProgramDetails({ program, onClose }) {
   if (!program) return null
 
   const quarterLabel = { fall: 'Fall', winter: 'Winter', spring: 'Spring' }
-  const yearLabel = { year_1: 'First Year', year_2: 'Second Year' }
+  const yearLabel = { year_1: 'Year 1', year_2: 'Year 2' }
 
-  // Collect all unique prerequisite-like notes
+  // Build dropdown options: "Year 1 — Fall", "Year 1 — Winter", etc.
+  const quarterOptions = []
+  for (const [yearKey, yearName] of Object.entries(yearLabel)) {
+    const yearData = program.years[yearKey]
+    const yearHasContent = Object.values(yearData).some(
+      (q) => q.required_courses.length > 0 || q.additional_courses.length > 0
+    )
+    if (!yearHasContent) continue
+
+    for (const [qKey, qName] of Object.entries(quarterLabel)) {
+      const quarter = yearData[qKey]
+      if (quarter.required_courses.length > 0 || quarter.additional_courses.length > 0) {
+        quarterOptions.push({ value: `${yearKey}|${qKey}`, label: `${yearName} — ${qName}`, yearKey, qKey })
+      }
+    }
+  }
+
+  const [selectedQuarter, setSelectedQuarter] = useState('')
+
+  // Parse the selected value to get quarter data
+  const selectedData = (() => {
+    if (!selectedQuarter) return null
+    const [yearKey, qKey] = selectedQuarter.split('|')
+    return program.years[yearKey][qKey]
+  })()
+
+  // Collect prerequisite-like notes
   const prerequisites = program.additionalNotes.filter(
     (note) =>
       note.toLowerCase().includes('prerequisite') ||
@@ -38,54 +66,56 @@ export default function ProgramDetails({ program, onClose }) {
           </div>
         </div>
 
-        {/* Pathway Timeline */}
-        <div className="pathway-timeline">
-          {Object.entries(yearLabel).map(([yearKey, yearName]) => {
-            const yearData = program.years[yearKey]
-            const hasContent = Object.values(yearData).some(
-              (q) => q.required_courses.length > 0 || q.additional_courses.length > 0
-            )
-            if (!hasContent) return null
-
-            return (
-              <div key={yearKey} className="year-section">
-                {program.pathwayYears > 1 && (
-                  <h3 className="year-heading">{yearName}</h3>
-                )}
-                <div className="quarters-grid">
-                  {Object.entries(quarterLabel).map(([qKey, qName]) => {
-                    const quarter = yearData[qKey]
-                    const hasCourses = quarter.required_courses.length > 0 || quarter.additional_courses.length > 0
-                    if (!hasCourses) return <div key={qKey} className="quarter-block empty" />
-
-                    return (
-                      <div key={qKey} className="quarter-block">
-                        <h4 className="quarter-heading">{qName}</h4>
-                        {quarter.required_courses.length > 0 && (
-                          <ul className="course-list required">
-                            {quarter.required_courses.map((course, i) => (
-                              <li key={i} className="course-item">{course}</li>
-                            ))}
-                          </ul>
-                        )}
-                        {quarter.additional_courses.length > 0 && (
-                          <div className="additional-section">
-                            <span className="additional-label">Additional:</span>
-                            <ul className="course-list additional">
-                              {quarter.additional_courses.map((course, i) => (
-                                <li key={i} className="course-item additional">{course}</li>
-                              ))}
-                            </ul>
-                          </div>
-                        )}
-                      </div>
-                    )
-                  })}
-                </div>
-              </div>
-            )
-          })}
+        {/* Quarter selector dropdown */}
+        <div className="quarter-selector">
+          <label htmlFor="quarter-select" className="quarter-selector-label">
+            Select a quarter to view required courses
+          </label>
+          <select
+            id="quarter-select"
+            className="quarter-select"
+            value={selectedQuarter}
+            onChange={(e) => setSelectedQuarter(e.target.value)}
+          >
+            <option value="">— Choose a quarter —</option>
+            {quarterOptions.map((opt) => (
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
+            ))}
+          </select>
         </div>
+
+        {/* Show courses for the selected quarter */}
+        {selectedData && (
+          <div className="quarter-courses">
+            {selectedData.required_courses.length > 0 && (
+              <div className="quarter-courses-section">
+                <h4 className="quarter-courses-heading">Required Courses</h4>
+                <ul className="course-list required">
+                  {selectedData.required_courses.map((course, i) => (
+                    <li key={i} className="course-item">{course}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {selectedData.additional_courses.length > 0 && (
+              <div className="quarter-courses-section">
+                <h4 className="quarter-courses-heading additional-heading">Additional / Elective</h4>
+                <ul className="course-list additional">
+                  {selectedData.additional_courses.map((course, i) => (
+                    <li key={i} className="course-item additional">{course}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Prompt when nothing selected */}
+        {!selectedData && (
+          <div className="quarter-placeholder">
+            <p>Pick a quarter above to see what courses you need.</p>
+          </div>
+        )}
 
         {/* Prerequisites */}
         {prerequisites.length > 0 && (

@@ -423,52 +423,76 @@ body {
   color: var(--text-secondary);
 }
 
-/* ===== Pathway Timeline ===== */
-.pathway-timeline {
-  margin-bottom: 2rem;
-}
-
-.year-section {
+/* ===== Quarter Selector Dropdown ===== */
+.quarter-selector {
   margin-bottom: 1.5rem;
 }
 
-.year-heading {
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--bg-white);
-  background: var(--da-red);
-  margin-bottom: 0.75rem;
-  padding: 0.5rem 0.75rem;
+.quarter-selector-label {
+  display: block;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 0.5rem;
+}
+
+.quarter-select {
+  width: 100%;
+  padding: 0.75rem 2.5rem 0.75rem 1rem;
+  font-size: 0.9375rem;
+  border: 2px solid var(--border-color);
   border-radius: var(--radius);
+  background: var(--bg-white);
+  color: var(--text-primary);
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%238c1515' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  transition: border-color 0.15s, box-shadow 0.15s;
 }
 
-.quarters-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 0.75rem;
+.quarter-select:focus {
+  outline: none;
+  border-color: var(--da-red);
+  box-shadow: 0 0 0 3px rgba(140, 21, 21, 0.1);
 }
 
-.quarter-block {
-  background: var(--bg-primary);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius);
-  padding: 0.75rem;
-  min-height: 60px;
+/* ===== Quarter Courses Display ===== */
+.quarter-courses {
+  margin-bottom: 2rem;
+  animation: fadeIn 0.2s ease;
 }
 
-.quarter-block.empty {
-  opacity: 0.4;
+.quarter-courses-section {
+  margin-bottom: 1.25rem;
 }
 
-.quarter-heading {
-  font-size: 0.75rem;
+.quarter-courses-heading {
+  font-size: 0.875rem;
   font-weight: 700;
   color: var(--da-red-dark);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-bottom: 0.5rem;
-  padding-bottom: 0.25rem;
+  letter-spacing: 0.04em;
+  margin-bottom: 0.625rem;
+  padding-bottom: 0.375rem;
   border-bottom: 2px solid var(--da-gold);
+}
+
+.quarter-courses-heading.additional-heading {
+  color: var(--text-secondary);
+  border-bottom-color: var(--border-color);
+}
+
+.quarter-placeholder {
+  text-align: center;
+  padding: 2.5rem 1rem;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  background: var(--bg-primary);
+  border-radius: var(--radius);
+  border: 1px dashed var(--border-color);
+  margin-bottom: 2rem;
 }
 
 .course-list {
@@ -583,8 +607,8 @@ body {
     padding: 1.25rem;
   }
 
-  .quarters-grid {
-    grid-template-columns: 1fr;
+  .quarter-select {
+    font-size: 1rem;
   }
 }
 

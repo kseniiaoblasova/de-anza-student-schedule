@@ -9,8 +9,9 @@ that visualizes scheduling conflict data through a drill-down hierarchy:
 Overview → Academic Area → Department → Pathway → Quarter → Courses + Conflict Pairs
 ```
 
-Visually independent from the existing app (dark theme, different layout and
-navigation model). Opens directly in a browser with no build step or server.
+Uses De Anza College brand colors (red `#8c1515`, gold `#c49a1a`) and the same
+light-background visual style as the existing React app (`web-app/`). Opens
+directly in a browser with no build step or server.
 
 ## Why
 
@@ -67,8 +68,9 @@ To include all 238 pathways, replace the `PATHWAY_DATA` array with the full
   `pathway_parser.py` subject-carry logic, but without the subject allow-list
   filtering, so it can over-match on prose (acceptable for a prototype).
 
-- **Dark theme** differentiates it visually from the existing red-and-gold
-  React app and the existing blue-toned Chart.js dashboard.
+- **De Anza brand theme** (red header, gold accents, light background) matches
+  the React app's look so the dashboard feels like part of the same product.
+  Card styling, shadows, and font choices mirror `web-app/src/styles.css`.
 
 ## Architecture
 

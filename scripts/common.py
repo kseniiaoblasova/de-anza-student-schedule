@@ -67,6 +67,13 @@ TABLE_SCHEMAS = {
         "KeySchema": [{"AttributeName": "pathway_id", "KeyType": "HASH"}],
         "AttributeDefinitions": [{"AttributeName": "pathway_id", "AttributeType": "S"}],
     },
+    # Normalized pathways: cleaned course lists derived from deanza-pathways.
+    # Same identity key so a normalized item lines up 1:1 with its source, but
+    # this is a separate table so the source is never mutated.
+    "deanza-pathways-normalized": {
+        "KeySchema": [{"AttributeName": "pathway_id", "KeyType": "HASH"}],
+        "AttributeDefinitions": [{"AttributeName": "pathway_id", "AttributeType": "S"}],
+    },
     # Class schedule (both years): partition by term so a whole quarter is one
     # query; sort key CRN#seq keeps multi-meeting sections from colliding.
     "deanza-class-schedule": {

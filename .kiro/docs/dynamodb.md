@@ -9,6 +9,7 @@ schedule-vs-program-map conflict analysis.
 | Table | Purpose | Key | Items |
 |-------|---------|-----|-------|
 | `deanza-pathways` | ~238 program-pathway maps | PK `pathway_id` | 238 |
+| `deanza-pathways-normalized` | pathways with cleaned canonical course lists | PK `pathway_id` | 238 |
 | `deanza-class-schedule` | class sections, both schedule years | PK `term_code` + SK `section_key` | 25,811 |
 
 - **Region:** `us-west-2`
@@ -53,6 +54,32 @@ python scripts/pathways/query.py --count
 python scripts/pathways/query.py --id "2025 ADMJ all.pdf#1"
 python scripts/pathways/query.py --village "Physical Sciences and Technology"
 python scripts/pathways/query.py --program accounting
+```
+
+---
+
+## Table: `deanza-pathways-normalized`
+
+Derived from `deanza-pathways`: one item per pathway with the verbose quarter
+course text cleaned into canonical course codes. The source table is never
+mutated — this is a separate, regenerable table.
+
+- **Key:** partition `pathway_id` (S) — same identity as the source table, so
+  items line up 1:1.
+- **Attributes:** `program_name`, `village`, `credential_type`, `source_file`,
+  `page_number`, `normalization_version`, and `years` (nested map:
+  `year_1/year_2` → `fall/winter/spring` → `normalized_courses[]`,
+  `unresolved_entries[]`). Canonical codes look like `"MATH 1A"`, matching the
+  normalized form of the schedule's `subject`+`number`.
+- **Built by:** `scripts/course_pairing/normalize_pathways.py --from-table --apply`.
+- **Coverage:** ~83% of distinct pathway courses pair with a scheduled course;
+  see `.kiro/docs/course-pairing.md` for the normalization rules, the audit, and
+  limitations (statewide `C1000` twins, year_2 having no future schedule, etc.).
+
+```bash
+python scripts/course_pairing/normalize_pathways.py --from-table            # dry run
+python scripts/course_pairing/normalize_pathways.py --from-table --apply --create-table
+python scripts/course_pairing/audit_matches.py --source normalized-table --use-cache
 ```
 
 ---
@@ -138,6 +165,10 @@ scripts/
     load.py   query.py   deanza-pathways
   class_schedule/
     load.py   query.py   deanza-class-schedule
+  course_pairing/
+    normalization.py  pathway_parser.py   pure course-code logic
+    normalize_pathways.py                 -> deanza-pathways-normalized
+    audit_matches.py                      pathway<->schedule coverage report
 ```
 
 `TABLE_SCHEMAS` in `common.py` is the single source of truth for key schemas;

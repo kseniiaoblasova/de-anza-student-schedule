@@ -122,28 +122,58 @@ same code runs in tests and in Lambda.
 
 ## Deploy
 
-Requires the AWS SAM CLI and valid credentials (the `.env` STS creds are
+Two paths. All deploys need valid credentials (the `.env` STS creds are
 short-lived — refresh before deploying).
 
+### SAM (preferred, when permissions allow)
+
 ```bash
-sam validate --lint -t infra/template.yaml     # not run here: no SAM CLI in this env
 sam build -t infra/template.yaml
-sam deploy --guided                             # first time; then plain `sam deploy`
+sam deploy --guided
 ```
 
-Outputs the endpoint URL and the CLI command to fetch the generated API key.
+**Blocked in the workshop account:** the `IsbUsersPS` SSO role is denied the SAM
+transform (`cloudformation:CreateChangeSet` on `transform/Serverless-2016-10-09`),
+so CloudFormation/SAM can't be used there. The template is kept for environments
+that do allow it.
+
+### Direct CLI deploy (used for the current deployment)
+
+Because CloudFormation is denied, the live deployment was built imperatively with
+the `aws` CLI: `lambda create-function` (reusing an existing Lambda execution
+role, since `iam:CreateRole` isn't needed and the function only logs), then
+`apigateway` calls to create the REST API, `/conflicts` POST (api-key required),
+`AWS_PROXY` integration, `lambda add-permission`, a `prod` deployment, and an API
+key + usage plan. No IAM role was created; no Docker needed (pure stdlib, nothing
+to build).
+
+### Current live deployment (workshop account, us-west-2)
+
+- Function: `deanza-schedule-conflicts` (role reused:
+  `deanza-bedrock-chatbot-ChatFunctionRole-…`)
+- REST API id `63l5xpc4uk`, stage `prod`
+- Endpoint: `https://63l5xpc4uk.execute-api.us-west-2.amazonaws.com/prod/conflicts`
+- Usage plan `jzk6yb` (10 rps, burst 20, 100k/month); API key required.
+- Retrieve the key value:
+  `aws apigateway get-api-key --api-key 8dzyidlzm6 --include-value --query value --output text`
+
+To update the function code after a change: rezip `scripts/conflicts` (as
+`conflicts/…`) and `aws lambda update-function-code --function-name
+deanza-schedule-conflicts --zip-file fileb://<zip>`.
 
 > **Auth:** a REST API is used (not HTTP API) because API keys + usage plans are a
 > REST API feature. Every call requires an `x-api-key` header; the usage plan
-> throttles (10 rps, burst 20) and caps monthly quota. The endpoint must not be
-> made public without a key. Tighten `Cors.AllowOrigin` from `*` to the tool's
-> domain before real use.
+> throttles and caps monthly quota. Verified: a request without the key returns
+> `403`. **CORS is not yet configured** (no OPTIONS/browser preflight) — the
+> current callers are server-side; add CORS before the browser tool calls it.
 
 ## Calling it
 
 ```bash
-curl -X POST "$API_ENDPOINT" \
-  -H "x-api-key: $API_KEY" \
+API=https://63l5xpc4uk.execute-api.us-west-2.amazonaws.com/prod/conflicts
+KEY=$(aws apigateway get-api-key --api-key 8dzyidlzm6 --include-value --query value --output text)
+curl -X POST "$API" \
+  -H "x-api-key: $KEY" \
   -H "Content-Type: application/json" \
   -d '{"term_code":"202722","sections":[
         {"course":"MATH D001A.","crn":"28143","meeting_days":"MW","meeting_times":"09:30 am-10:20 am"},

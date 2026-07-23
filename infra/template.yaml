@@ -60,7 +60,7 @@ Resources:
 
 Outputs:
   ApiEndpoint:
-    Description: POST here with {"sections": [...]} and header x-api-key
+    Description: 'POST here with a JSON body {sections: [...]} and header x-api-key'
     Value: !Sub "https://${ConflictApi}.execute-api.${AWS::Region}.amazonaws.com/prod/conflicts"
   ApiKeyRetrieval:
     Description: Fetch the generated API key value

@@ -1,55 +1,71 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { PLAN_API_URL, TERMS } from '../config'
 
 export default function ProgramDetails({ program, onClose }) {
   if (!program) return null
 
-  const quarterLabel = { fall: 'Fall', winter: 'Winter', spring: 'Spring' }
-  const yearLabel = { year_1: 'Year 1', year_2: 'Year 2' }
+  // Planner state: chosen term, the set of selected course codes, and the
+  // async request lifecycle (loading / error / result) for the conflict check.
+  const [termCode, setTermCode] = useState('')
+  const [selected, setSelected] = useState(() => new Set())
+  const [status, setStatus] = useState('idle') // idle | loading | done | error
+  const [result, setResult] = useState(null)
+  const [error, setError] = useState('')
 
-  // Build dropdown options: "Year 1 — Fall", "Year 1 — Winter", etc.
-  const quarterOptions = []
-  for (const [yearKey, yearName] of Object.entries(yearLabel)) {
-    const yearData = program.years[yearKey]
-    const yearHasContent = Object.values(yearData).some(
-      (q) => q.required_courses.length > 0 || q.additional_courses.length > 0
-    )
-    if (!yearHasContent) continue
+  // Reset the planner whenever a different pathway opens (the component stays
+  // mounted across selections, so local state would otherwise leak over).
+  useEffect(() => {
+    setTermCode('')
+    setSelected(new Set())
+    setStatus('idle')
+    setResult(null)
+    setError('')
+  }, [program.pathwayId])
 
-    for (const [qKey, qName] of Object.entries(quarterLabel)) {
-      const quarter = yearData[qKey]
-      if (quarter.required_courses.length > 0 || quarter.additional_courses.length > 0) {
-        // Flag quarters that carry schedule conflicts right in the dropdown label.
-        const c = program.conflictsByQuarter?.[`${yearKey}#${qKey}`]
-        const suffix = c && c.conflict_count > 0
-          ? `  \u26a0 ${c.conflict_count} conflict${c.conflict_count !== 1 ? 's' : ''}`
-          : ''
-        quarterOptions.push({ value: `${yearKey}|${qKey}`, label: `${yearName} — ${qName}${suffix}`, yearKey, qKey })
-      }
+  const toggleCourse = (code) => {
+    setSelected((prev) => {
+      const next = new Set(prev)
+      next.has(code) ? next.delete(code) : next.add(code)
+      return next
+    })
+    // A changed selection invalidates any shown result.
+    setStatus('idle')
+    setResult(null)
+  }
+
+  const courseCodes = program.courseCodes || []
+  const canCheck = termCode && selected.size >= 2 && status !== 'loading'
+
+  // Call the keyless planner endpoint with the chosen term + courses.
+  const checkSchedule = async () => {
+    setStatus('loading')
+    setError('')
+    setResult(null)
+    try {
+      const resp = await fetch(PLAN_API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ term_code: termCode, courses: [...selected] }),
+      })
+      const body = await resp.json()
+      if (!resp.ok) throw new Error(body.error || `Request failed (${resp.status})`)
+      setResult(body)
+      setStatus('done')
+    } catch (e) {
+      setError(e.message || 'Something went wrong contacting the planner.')
+      setStatus('error')
     }
   }
 
-  const [selectedQuarter, setSelectedQuarter] = useState('')
-
-  // Parse the selected value to get quarter data
-  const selectedData = (() => {
-    if (!selectedQuarter) return null
-    const [yearKey, qKey] = selectedQuarter.split('|')
-    return program.years[yearKey][qKey]
-  })()
-
-  // Conflict record for the chosen quarter. The dropdown value joins with '|';
-  // the conflict data is keyed by quarter_key ("year_1#fall"), so swap to '#'.
-  const selectedConflict = selectedQuarter
-    ? program.conflictsByQuarter?.[selectedQuarter.replace('|', '#')]
-    : null
-
-  // Collect prerequisite-like notes
+  // Collect prerequisite-like notes for the context section at the bottom.
   const prerequisites = program.additionalNotes.filter(
     (note) =>
       note.toLowerCase().includes('prerequisite') ||
       note.toLowerCase().includes('placement test') ||
       note.toLowerCase().includes('must also take')
   )
+
+  const termLabel = TERMS.find((t) => t.code === termCode)?.label || ''
 
   return (
     <div className="details-overlay" onClick={onClose}>
@@ -77,109 +93,74 @@ export default function ProgramDetails({ program, onClose }) {
           </div>
         </div>
 
-        {/* Quarter selector dropdown */}
-        <div className="quarter-selector">
-          <label htmlFor="quarter-select" className="quarter-selector-label">
-            Select a quarter to view required courses
-          </label>
-          <select
-            id="quarter-select"
-            className="quarter-select"
-            value={selectedQuarter}
-            onChange={(e) => setSelectedQuarter(e.target.value)}
-          >
-            <option value="">— Choose a quarter —</option>
-            {quarterOptions.map((opt) => (
-              <option key={opt.value} value={opt.value}>{opt.label}</option>
-            ))}
-          </select>
-        </div>
+        {/* ===== Interactive planner ===== */}
+        <div className="planner">
+          <p className="planner-intro">
+            Pick a term and the courses you want to take. We'll check every pair of
+            offered sections and show which ones fit together and which overlap.
+          </p>
 
-        {/* Show courses for the selected quarter */}
-        {selectedData && (
-          <div className="quarter-courses">
-            {selectedData.required_courses.length > 0 && (
-              <div className="quarter-courses-section">
-                <h4 className="quarter-courses-heading">Required Courses</h4>
-                <ul className="course-list required">
-                  {selectedData.required_courses.map((course, i) => (
-                    <li key={i} className="course-item">{course}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
-            {selectedData.additional_courses.length > 0 && (
-              <div className="quarter-courses-section">
-                <h4 className="quarter-courses-heading additional-heading">Additional / Elective</h4>
-                <ul className="course-list additional">
-                  {selectedData.additional_courses.map((course, i) => (
-                    <li key={i} className="course-item additional">{course}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
+          {/* Step 1 — term */}
+          <div className="planner-step">
+            <label htmlFor="term-select" className="planner-label">1. Choose a term</label>
+            <select
+              id="term-select"
+              className="quarter-select"
+              value={termCode}
+              onChange={(e) => { setTermCode(e.target.value); setStatus('idle'); setResult(null) }}
+            >
+              <option value="">— Select a term —</option>
+              {TERMS.map((t) => (
+                <option key={t.code} value={t.code}>{t.label}</option>
+              ))}
+            </select>
           </div>
-        )}
 
-        {/* Schedule conflicts for the selected quarter */}
-        {selectedQuarter && (
-          <div className="quarter-conflicts">
-            <h4 className="quarter-courses-heading conflicts-heading">Schedule Conflicts</h4>
-
-            {!selectedConflict ? (
-              <p className="conflicts-note muted">No conflict analysis available for this quarter.</p>
-            ) : selectedConflict.conflict_count === 0 ? (
-              <p className="conflicts-note ok">
-                No time conflicts among this quarter's scheduled sections
-                {selectedConflict.section_count ? ` (${selectedConflict.section_count} sections checked)` : ''}.
+          {/* Step 2 — courses (chips) */}
+          <div className="planner-step">
+            <label className="planner-label">
+              2. Choose courses{selected.size > 0 ? ` (${selected.size} selected)` : ''}
+            </label>
+            {courseCodes.length === 0 ? (
+              <p className="conflicts-note muted">
+                No course codes are available for this pathway.
               </p>
             ) : (
-              <>
-                <p className="conflicts-summary">
-                  {selectedConflict.conflict_count} conflicting section pair
-                  {selectedConflict.conflict_count !== 1 ? 's' : ''} among{' '}
-                  {selectedConflict.section_count} sections ({selectedConflict.conflict_percentage}%)
-                </p>
-                <ul className="conflict-list">
-                  {selectedConflict.conflicts.map((c, i) => (
-                    <li key={i} className="conflict-item">
-                      <div className="conflict-pair">
-                        <span className="conflict-course">
-                          {c.course_a} <span className="conflict-crn">CRN {c.crn_a}</span>
-                        </span>
-                        <span className="conflict-x">&times;</span>
-                        <span className="conflict-course">
-                          {c.course_b} <span className="conflict-crn">CRN {c.crn_b}</span>
-                        </span>
-                      </div>
-                      <div className="conflict-overlap">
-                        {(c.overlap.days || []).join('/')} &middot; {c.overlap.time_a}
-                        {c.overlap.time_b && c.overlap.time_b !== c.overlap.time_a
-                          ? ` / ${c.overlap.time_b}`
-                          : ''}
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              </>
-            )}
-
-            {/* Courses with no section in the term — excluded from the analysis,
-                surfaced so they aren't mistaken for clash-free. */}
-            {selectedConflict && selectedConflict.missing_courses.length > 0 && (
-              <p className="conflicts-missing muted">
-                Not offered / unmatched this term: {selectedConflict.missing_courses.join(', ')}
-              </p>
+              <div className="course-chips">
+                {courseCodes.map((code) => (
+                  <button
+                    key={code}
+                    type="button"
+                    className={`chip${selected.has(code) ? ' selected' : ''}`}
+                    aria-pressed={selected.has(code)}
+                    onClick={() => toggleCourse(code)}
+                  >
+                    {code}
+                  </button>
+                ))}
+              </div>
             )}
           </div>
-        )}
 
-        {/* Prompt when nothing selected */}
-        {!selectedData && (
-          <div className="quarter-placeholder">
-            <p>Pick a quarter above to see what courses you need.</p>
+          {/* Step 3 — run */}
+          <div className="planner-step">
+            <button className="check-btn" disabled={!canCheck} onClick={checkSchedule}>
+              {status === 'loading' ? 'Checking…' : 'Check my schedule'}
+            </button>
+            {selected.size < 2 && (
+              <span className="planner-hint">Pick at least two courses to compare.</span>
+            )}
           </div>
-        )}
+
+          {/* Results */}
+          {status === 'error' && (
+            <p className="conflicts-note error-note">{error}</p>
+          )}
+
+          {status === 'done' && result && (
+            <PlanResult result={result} termLabel={termLabel} />
+          )}
+        </div>
 
         {/* Prerequisites */}
         {prerequisites.length > 0 && (
@@ -213,6 +194,119 @@ export default function ProgramDetails({ program, onClose }) {
           </span>
         </div>
       </div>
+    </div>
+  )
+}
+
+/** One side of a section pair: course code + CRN + section number. */
+function PairSide({ course, crn, meta }) {
+  return (
+    <span className="conflict-course">
+      {course}{' '}
+      <span className="conflict-crn">
+        CRN {crn}{meta?.section ? ` · sec ${meta.section}` : ''}
+      </span>
+    </span>
+  )
+}
+
+/** The student-facing result: headline verdict, then the two pair lists. */
+function PlanResult({ result, termLabel }) {
+  const {
+    offered_courses = [], not_offered_courses = [], section_count = 0,
+    pairs_evaluated = 0, overlap_count = 0, overlap_percentage = 0,
+    overlaps = [], clear = [],
+  } = result
+
+  // No comparison possible — fewer than two courses actually have sections.
+  if (pairs_evaluated === 0) {
+    return (
+      <div className="plan-result">
+        <p className="conflicts-note muted">
+          Not enough offered courses to compare in {termLabel}. At least two of your
+          selected courses need scheduled sections this term.
+        </p>
+        {not_offered_courses.length > 0 && (
+          <p className="conflicts-missing muted">
+            Not offered this term: {not_offered_courses.join(', ')}
+          </p>
+        )}
+      </div>
+    )
+  }
+
+  const clean = overlap_count === 0
+
+  return (
+    <div className="plan-result">
+      {/* Headline verdict with the overlap percentage. */}
+      <div className={`plan-verdict ${clean ? 'ok' : 'warn'}`}>
+        <span className="plan-pct">{overlap_percentage}%</span>
+        <span className="plan-verdict-text">
+          {clean
+            ? `All ${pairs_evaluated} section pairings fit together in ${termLabel}.`
+            : `${overlap_count} of ${pairs_evaluated} section pairings overlap in ${termLabel}.`}
+        </span>
+      </div>
+
+      <p className="plan-subline">
+        {offered_courses.length} course{offered_courses.length !== 1 ? 's' : ''} offered
+        {' · '}{section_count} sections checked
+      </p>
+
+      {/* Overlapping pairs — the ones a student can't take together. */}
+      {overlaps.length > 0 && (
+        <div className="plan-group">
+          <h4 className="quarter-courses-heading conflicts-heading">
+            Can't take together ({overlaps.length})
+          </h4>
+          <ul className="conflict-list">
+            {overlaps.map((c, i) => (
+              <li key={i} className="conflict-item">
+                <div className="conflict-pair">
+                  <PairSide course={c.course_a} crn={c.crn_a} meta={c.meta_a} />
+                  <span className="conflict-x">&times;</span>
+                  <PairSide course={c.course_b} crn={c.crn_b} meta={c.meta_b} />
+                </div>
+                {c.overlap_detail && (
+                  <div className="conflict-overlap">
+                    Overlaps {(c.overlap_detail.days || []).join('/')} &middot;{' '}
+                    {c.overlap_detail.time_a}
+                    {c.overlap_detail.time_b && c.overlap_detail.time_b !== c.overlap_detail.time_a
+                      ? ` / ${c.overlap_detail.time_b}`
+                      : ''}
+                  </div>
+                )}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* Compatible pairs — collapsed by default to keep the focus on clashes. */}
+      {clear.length > 0 && (
+        <details className="plan-clear">
+          <summary>Fit together ({clear.length})</summary>
+          <ul className="conflict-list">
+            {clear.map((c, i) => (
+              <li key={i} className="conflict-item ok">
+                <div className="conflict-pair">
+                  <PairSide course={c.course_a} crn={c.crn_a} meta={c.meta_a} />
+                  <span className="conflict-check">✓</span>
+                  <PairSide course={c.course_b} crn={c.crn_b} meta={c.meta_b} />
+                </div>
+              </li>
+            ))}
+          </ul>
+        </details>
+      )}
+
+      {/* Selected courses with no section this term. */}
+      {not_offered_courses.length > 0 && (
+        <p className="conflicts-missing muted">
+          Not offered this term: {not_offered_courses.join(', ')}
+        </p>
+      )}
     </div>
   )
 }

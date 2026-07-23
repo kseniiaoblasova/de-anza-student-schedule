@@ -52,16 +52,6 @@ export default function ProgramCard({ program, onClick }) {
       </div>
 
       <div className="card-village">{program.village}</div>
-
-      {/* Schedule-conflict signal: hot-spot programs stand out in the grid.
-          Only shown when the pathway has conflict analysis data. */}
-      {program.hasConflictData && (
-        <div className={`conflict-flag ${program.hasConflicts ? 'has-conflicts' : 'no-conflicts'}`}>
-          {program.hasConflicts
-            ? `${program.totalConflicts} time conflict${program.totalConflicts !== 1 ? 's' : ''}`
-            : 'No time conflicts'}
-        </div>
-      )}
     </div>
   )
 }

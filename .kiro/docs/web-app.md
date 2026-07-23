@@ -1,21 +1,25 @@
 # Web App — Pathway Explorer
 
 A single-page React app that lets anyone browse, search, and inspect De Anza's
-~238 program pathways. It is the first user-facing surface for the scheduling
-challenge: it makes the pathway maps (today locked in ~80 static PDFs) skimmable
-and searchable in a browser.
+~238 program pathways, and — once a pathway is open — check live whether a chosen
+term's courses fit together. It is the first user-facing surface for the
+scheduling challenge: it makes the pathway maps (today locked in ~80 static PDFs)
+skimmable and searchable, and answers "can I actually take these together this
+term" on demand.
 
 ## What
 
 A Vite + React 19 SPA under `web-app/`. It renders a filterable grid of program
-cards; clicking one opens a full-screen detail panel. The panel shows a single
-quarter's course load at a time: the student picks a quarter ("Year 1 — Fall",
-"Year 1 — Winter", ...) from a dropdown, and the panel lists that quarter's
-required and additional/elective courses **plus the precomputed schedule
-conflicts for that quarter** — the pairs of course sections whose meeting times
-overlap so a student can't take both — along with prerequisites, notes, and the
-source PDF + page. Each card also carries a conflict badge (a hot-spot signal),
-and the quarter dropdown flags which quarters have conflicts. Search matches
+cards; clicking one opens a full-screen detail panel with an **interactive
+planner**: the student picks a term (any of the six loaded quarters) and clicks
+the pathway's course chips, then hits "Check my schedule." The app calls the
+keyless `/plan` endpoint, which pulls that term's sections and compares every
+cross-course section pair, and renders a **user-friendly result** — an overlap
+percentage headline, a "can't take together" list of clashing section pairs (with
+the overlapping days/times), a collapsible "fit together" list, and a muted
+"not offered this term" line. Prerequisites, notes, and the source PDF + page
+still show below. Cards show no conflict count — conflicts are only ever shown
+dynamically, per the term/courses a student picks in the planner. Search matches
 program name, department ("village"), or any required course code; two dropdowns
 filter by degree type and department.
 
@@ -31,20 +35,25 @@ backend's per-quarter conflict analysis (`deanza-pathway-conflicts`) so the
 
 - **Stack:** React 19 + Vite 8, plain CSS (no UI framework). No router — a single
   `App` with local `useState`.
-- **Data is static, bundled at build time.** Two JSON files are imported directly
-  by `src/data/pathways.js` and transformed into one app-friendly array at module
-  load — no runtime API calls:
+- **Pathway data is static; the planner is live.** Two JSON files are
+  imported directly by `src/data/pathways.js` and transformed at module load —
+  these drive the grid and search with no runtime call:
   - `src/data/deanza_pathways.json` — same shape as the `deanza-pathways` table
     (pathway metadata + verbose per-quarter course text).
   - `src/data/pathway_conflicts.json` — the precomputed conflict analysis,
-    exported from `deanza-pathway-conflicts` (see "Conflict data" below).
+    exported from `deanza-pathway-conflicts` (see "Conflict data" below). No
+    longer surfaced as a card badge; now used only to derive each pathway's
+    canonical course codes for the planner chips.
+  The detail-panel planner, by contrast, calls the `/plan` endpoint at runtime
+  (`src/config.js` → `PLAN_API_URL`, overridable with `VITE_PLAN_API_URL`).
 - **State flow:** `App` holds `filters` and `selectedProgram`. `filteredPrograms`
   is a `useMemo` over the transform output. Components are presentational and
   receive props + callbacks:
   - `SearchFilter` — search box + degree/department selects + reset.
   - `ProgramList` → `ProgramCard` — the result grid (empty state when zero).
-  - `ProgramDetails` — the modal overlay. Holds its own local `selectedQuarter`
-    state and shows one quarter's courses at a time via a dropdown (see below).
+  - `ProgramDetails` — the modal overlay. Holds the planner's local state (chosen
+    `termCode`, the `Set` of selected course codes, and request `status`/`result`)
+    and renders the term picker, chips, and results (see the planner section).
 - **`pathways.js` is where the real logic lives.** Two notable pieces:
   - `transformPathway` flattens the nested year/quarter JSON into per-program
     fields (short name, credential type, flattened course lists, 1- vs 2-year
@@ -56,28 +65,26 @@ backend's per-quarter conflict analysis (`deanza-pathway-conflicts`) so the
   - `popularitySort` orders programs by hard-coded demand tiers (STEM/tech first,
     trades/misc last), breaking ties by credential weight (transfer > bachelor >
     AS > AA > certificate).
-- **Per-quarter course view (`ProgramDetails`).** The panel now shows one quarter
-  at a time instead of the whole two-year plan at once. On open it builds a
-  dropdown from only the quarters that actually have courses (label
-  `"Year N — Quarter"`, value `"year_1|fall"`); `selectedQuarter` local state
-  drives which quarter renders. Selecting one shows that quarter's *Required
-  Courses* and *Additional / Elective* lists, then the *Schedule Conflicts* panel
-  (below); until then a placeholder prompts the user to pick a quarter.
-- **Conflict data & join.** `pathways.js` also imports `pathway_conflicts.json`,
-  keyed by `pathway_id` = `"<source_file>#<page_number>"` — the same identity the
-  backend tables use. `transformPathway` builds that id from the pathway's
-  `sourceFile`/`pageNumber`, attaches the pathway's `conflictsByQuarter` map
-  (keyed by `quarter_key`, e.g. `"year_1#fall"`), and rolls up `totalConflicts`
-  for the card. Each quarter entry carries `courses`, `missing_courses`,
-  `section_count`, `conflict_count`, `conflict_percentage`, and a `conflicts`
-  list of section-pair clashes (`course_a`/`crn_a` × `course_b`/`crn_b` +
-  day/time overlap). Codes are canonical (`"MATH 1A"`) — the backend derives them
-  from the normalized pathways, so nothing needs renormalizing client-side.
-- **Where conflicts render.** `ProgramCard` shows a badge ("N time conflicts" /
-  "No time conflicts", only when conflict data exists). `ProgramDetails` annotates
-  each dropdown option with its conflict count and, for the selected quarter,
-  renders the conflict pairs with their overlapping days/times, a summary line,
-  and a muted "not offered / unmatched this term" list from `missing_courses`.
+- **Interactive planner (`ProgramDetails`).** Three steps: pick a term (the six
+  `TERMS` from `config.js`), click the pathway's course chips (multi-select), then
+  "Check my schedule" (enabled once a term and ≥2 courses are chosen). That POSTs
+  `{ term_code, courses }` to `PLAN_API_URL` and renders the `<PlanResult>` child:
+  a percentage verdict, the "can't take together" overlap list (each pair's shared
+  days + times), a collapsed "fit together" list, and the "not offered this term"
+  line. Loading/error states are handled inline; changing the term or a chip
+  invalidates the shown result, and the whole planner resets when a different
+  pathway opens (keyed on `pathwayId` in a `useEffect`).
+- **Where the chips come from.** The verbose `required_courses` text isn't clean
+  codes, so `transformPathway` derives `courseCodes` — the sorted union of every
+  quarter's `courses` + `missing_courses` from the precomputed conflict data
+  (already canonical, `"MATH 1A"`). No client-side normalization; pathways with no
+  conflict data simply have no chips.
+- **Conflict-data join (chips only).** `pathways.js` imports
+  `pathway_conflicts.json`, keyed by `pathway_id` = `"<source_file>#<page_number>"`
+  — the same identity the backend tables use. `transformPathway` still attaches
+  `conflictsByQuarter` (kept as the source for `courseCodes`), but the precomputed
+  counts are **no longer shown anywhere in the UI**: the card badge was removed so
+  conflicts appear only dynamically, from the planner's live `/plan` call.
 - **Styling:** `src/styles.css` defines De Anza brand tokens (red `#8c1515`, gold
   `#c49a1a`) as CSS variables; cards and badges are color-coded by credential
   type in `ProgramCard`.
@@ -111,12 +118,13 @@ committed (like `deanza_pathways.json`), so a clone builds without AWS access.
 
 ## Decisions & alternatives
 
-- **Static JSON export, not a live API.** Both pathway and conflict data are
-  bundled at build time rather than fetched from the conflict Lambda. Simplest
-  thing that ships, needs no API key in the browser, and the conflict analysis is
-  precomputed and read-heavy anyway. Cost: data is only as fresh as the last
-  `export_web_data.py` run, and the conflict JSON (~1.8 MB) inflates the bundle.
-  A live fetch is a later swap if freshness matters.
+- **Hybrid: static data for browsing, a live call for planning.** Pathway and
+  precomputed-conflict data stay bundled (fast grid/search/badges, no key needed),
+  but the detail-panel planner fetches from the keyless `/plan` endpoint so a
+  student can check *any* term + course combination against the current schedule —
+  not just the precomputed pathway-quarter mapping. The endpoint is keyless
+  precisely so the browser needs no secret. Cost: the planner needs the API up and
+  reachable (CORS), whereas browsing works fully offline from the bundle.
 - **Join on `pathway_id`, computed client-side.** The conflict export is keyed by
   `"<source_file>#<page_number>"`; the frontend already carries those fields, so
   the join is a string concat with no extra backend work. Verified: all 235
@@ -130,14 +138,13 @@ committed (like `deanza_pathways.json`), so a clone builds without AWS access.
 - **Hard-coded popularity tiers.** Real major-declaration data isn't available
   (a known challenge gap), so ordering uses a keyword-based demand proxy. Swap
   `getPopularityRank`/`popularitySort` when enrollment data lands.
-- **One quarter at a time, not a full timeline.** The details panel used to
-  render every quarter's courses simultaneously in a year/quarter grid. It was
-  replaced with a dropdown that reveals a single quarter's course load on demand.
-  Trades an at-a-glance overview for a focused, less cluttered view that frames
-  the question the challenge cares about — "what must a student take *this*
-  quarter" — one term at a time. The full-grid styles (`pathway-timeline`,
-  `quarters-grid`, `quarter-block`) are gone; the new markup uses
-  `quarter-selector` / `quarter-courses`.
+- **Student picks courses, rather than viewing a fixed quarter.** The details
+  panel evolved from rendering a pathway quarter's precomputed conflicts to an
+  interactive planner where the student chooses the term and the specific courses
+  to attempt. This matches the real question ("can I take *these* together?") and
+  frees the check from the pathway's year→term mapping. Tradeoff: the answer now
+  depends on a live endpoint, and the chips are limited to the pathway's known
+  course codes (from the conflict data), not every course offered in the term.
 
 ## Gotchas
 

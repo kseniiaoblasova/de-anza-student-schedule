@@ -346,13 +346,23 @@ body {
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes slideIn {
-  from { transform: translateX(100%); }
-  to { transform: translateX(0); }
+  from {
+    transform: translateX(100%);
+  }
+
+  to {
+    transform: translateX(0);
+  }
 }
 
 .details-panel {
@@ -629,10 +639,12 @@ body {
   padding: 0.2rem 0.55rem;
   border-radius: 999px;
 }
+
 .conflict-flag.has-conflicts {
   background: var(--da-red-lighter);
   color: var(--da-red);
 }
+
 .conflict-flag.no-conflicts {
   background: #eef7ee;
   color: #2f7d32;
@@ -642,30 +654,37 @@ body {
 .quarter-conflicts {
   margin-top: 1.5rem;
 }
+
 .conflicts-heading {
   color: var(--da-red);
 }
+
 .conflicts-note {
   font-size: 0.9rem;
 }
+
 .conflicts-note.ok {
   color: #2f7d32;
 }
+
 .conflicts-note.muted,
 .conflicts-missing.muted {
   color: var(--text-muted);
 }
+
 .conflicts-summary {
   font-weight: 600;
   color: var(--da-red);
   margin-bottom: 0.6rem;
 }
+
 .conflict-list {
   list-style: none;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
 }
+
 .conflict-item {
   background: var(--bg-white);
   border: 1px solid var(--border-color);
@@ -673,6 +692,7 @@ body {
   border-radius: var(--radius);
   padding: 0.5rem 0.75rem;
 }
+
 .conflict-pair {
   display: flex;
   align-items: center;
@@ -680,21 +700,194 @@ body {
   gap: 0.5rem;
   font-weight: 600;
 }
+
 .conflict-crn {
   font-weight: 400;
   font-size: 0.8rem;
   color: var(--text-muted);
 }
+
 .conflict-x {
   color: var(--da-red);
   font-weight: 700;
 }
+
 .conflict-overlap {
   margin-top: 0.15rem;
   font-size: 0.82rem;
   color: var(--text-secondary);
 }
+
 .conflicts-missing {
   margin-top: 0.6rem;
   font-size: 0.82rem;
+}
+
+/* ===== Interactive planner ===== */
+.planner {
+  margin: 1.5rem 0 2rem;
+}
+
+.planner-intro {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin-bottom: 1.25rem;
+}
+
+.planner-step {
+  margin-bottom: 1.25rem;
+}
+
+.planner-label {
+  display: block;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--da-red-dark);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 0.5rem;
+}
+
+/* Course selection chips */
+.course-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.chip {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  padding: 0.35rem 0.7rem;
+  border-radius: 999px;
+  border: 1.5px solid var(--border-color);
+  background: var(--bg-white);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.12s;
+}
+
+.chip:hover {
+  border-color: var(--da-red-light);
+  color: var(--da-red);
+}
+
+.chip.selected {
+  background: var(--da-red);
+  border-color: var(--da-red);
+  color: #fff;
+}
+
+/* Run button */
+.check-btn {
+  font-size: 0.9rem;
+  font-weight: 700;
+  padding: 0.6rem 1.4rem;
+  border: none;
+  border-radius: var(--radius);
+  background: var(--da-red);
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.check-btn:hover:not(:disabled) {
+  background: var(--da-red-dark);
+}
+
+.check-btn:disabled {
+  background: var(--border-color);
+  color: var(--text-muted);
+  cursor: not-allowed;
+}
+
+.planner-hint {
+  margin-left: 0.75rem;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.error-note {
+  color: var(--da-red);
+  font-weight: 600;
+}
+
+/* Result */
+.plan-result {
+  margin-top: 1.5rem;
+  animation: fadeIn 0.2s ease;
+}
+
+.plan-verdict {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 0.9rem 1.1rem;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-color);
+}
+
+.plan-verdict.warn {
+  background: var(--da-red-lighter);
+  border-color: var(--da-red-light);
+}
+
+.plan-verdict.ok {
+  background: #eef7ee;
+  border-color: #b7ddb9;
+}
+
+.plan-pct {
+  font-size: 1.75rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.plan-verdict.warn .plan-pct {
+  color: var(--da-red);
+}
+
+.plan-verdict.ok .plan-pct {
+  color: #2f7d32;
+}
+
+.plan-verdict-text {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.plan-subline {
+  margin: 0.6rem 0 1rem;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.plan-group {
+  margin-bottom: 1.25rem;
+}
+
+/* Compatible-pairs disclosure */
+.plan-clear {
+  margin-bottom: 1rem;
+}
+
+.plan-clear>summary {
+  cursor: pointer;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: #2f7d32;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.4rem 0;
+}
+
+.conflict-item.ok {
+  border-left-color: #2f7d32;
+}
+
+.conflict-check {
+  color: #2f7d32;
+  font-weight: 700;
 }

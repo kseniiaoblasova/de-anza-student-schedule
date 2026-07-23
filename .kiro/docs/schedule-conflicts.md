@@ -111,11 +111,86 @@ not compute it. Sides are ordered alphabetically by course.
 ```
 scripts/conflicts/
   time_parsing.py     pure: parse_meeting_times / parse_meeting_days / *_overlap
-  conflict_engine.py  pure: build_sections, find_conflicts
-  lambda_handler.py   AWS entry: unwrap event, validate, call engine, HTTP response
-tests/conflicts/      49 tests mirroring the above
-infra/template.yaml   SAM: Lambda + REST API + API key/usage plan + CORS
+  conflict_engine.py  pure: build_sections, find_conflicts, classify_pairs
+  lambda_handler.py   AWS entry (/conflicts): unwrap event, validate, engine, HTTP response
+  section_lookup.py   I/O: term + course codes -> that term's section payloads (reads DynamoDB)
+  plan_handler.py     AWS entry (/plan): term-aware student planner (lookup + classify)
+tests/conflicts/      tests mirroring the above
+infra/template.yaml   SAM: two Lambdas + REST API + API key/usage plan + CORS
 ```
+
+## Student planner endpoint (`POST /plan`, no API key)
+
+A second, **term-aware** entry point for the browser app. Where `/conflicts` is
+handed a section list, `/plan` is given a term and canonical course codes and
+looks the sections up itself, then returns the full overlap/clear split (not just
+the collisions) so a student sees *which of their picks fit together and which
+can't*.
+
+```
+term_code + courses ─► section_lookup (reads deanza-class-schedule)
+                    ─► conflict_engine.classify_pairs  (every cross-course pair, Yes/No)
+                    ─► student-facing summary + overlap %
+```
+
+**Request**
+
+```json
+{ "term_code": "202722", "courses": ["MATH 1A", "ENGL 1A", "HIST 1A"] }
+```
+
+- `term_code` (required): a schedule term (`202622/32/42` = AY2025-26 F/W/Sp,
+  `202722/32/42` = AY2026-27). Both loaded years are valid.
+- `courses` (required, non-empty): **canonical** codes (`"MATH 1A"`). Bridged to
+  schedule rows (`"MATH D001A."`) with the shared `normalize_course`.
+
+**Response 200**
+
+```json
+{
+  "term_code": "202722",
+  "requested_courses": ["MATH 1A", "ENGL 1A", "HIST 1A"],
+  "offered_courses": ["MATH 1A", "ENGL 1A", "HIST 1A"],
+  "not_offered_courses": [],
+  "section_count": 14,
+  "pairs_evaluated": 47,
+  "overlap_count": 6,
+  "clear_count": 41,
+  "overlap_percentage": 12.8,
+  "overlaps": [ { "course_a", "crn_a", "course_b", "crn_b",
+                  "overlap": true, "overlap_detail": {days,time_a,time_b},
+                  "meta_a", "meta_b" } ],
+  "clear":    [ { "course_a", "crn_a", "course_b", "crn_b", "overlap": false,
+                  "meta_a", "meta_b" } ]
+}
+```
+
+- `overlap_percentage` = `overlap_count / pairs_evaluated * 100` (0 when no pairs).
+  Unlike `/conflicts`, this endpoint *does* compute the percentage — it's the
+  headline the UI shows.
+- `not_offered_courses`: requested courses with no section in the term (not
+  offered, or an alias twin like `EWRT 1A` vs `ENGL C1000`). Surfaced, not
+  dropped.
+- `overlap_detail` (shared days + both times) is present only on `overlaps`.
+
+**How it reads the schedule.** `section_lookup` queries the term partition
+(narrowed to the requested subjects via a filter), indexes rows by canonical
+course (`pathway_conflicts.resolve.index_sections_by_course`), and collects every
+section of each course (`build_section_payload`). It uses the **default AWS
+credential chain** (the Lambda execution role), *not* `common.get_session()` —
+that reads explicit env keys, which is right for the CLI loaders but wrong in
+Lambda. So the function needs `dynamodb:Query` on `deanza-class-schedule`.
+
+**No API key.** `/plan` is public (`ApiKeyRequired: false`) so the browser can
+call it without shipping a secret. The data is read-only published-schedule info;
+the usage plan's throttle still applies. Lock `CORS_ALLOW_ORIGIN` to the app's
+origin for real use.
+
+> `find_conflicts` is deliberately left untouched — the pathway-conflicts batch
+> pipeline depends on its exact shape. `classify_pairs` is a sibling that reuses
+> the same `build_sections`/`find_pair_conflict` internals and adds the
+> non-colliding pairs; `overlap_count` is guaranteed to match the old
+> `conflict_count` (regression-tested).
 
 The engine and parser import nothing AWS; the handler is a thin adapter, so the
 same code runs in tests and in Lambda.
@@ -161,6 +236,34 @@ no api key) plus CORS headers from the Lambda, then a fresh `prod` deployment.
 To update the function code after a change: rezip `scripts/conflicts` (as
 `conflicts/…`) and `aws lambda update-function-code --function-name
 deanza-schedule-conflicts --zip-file fileb://<zip>`.
+
+**`/plan` (the planner) — deployed (workshop account, us-west-2).**
+
+- Function `deanza-schedule-plan` (python3.12, handler
+  `conflicts.plan_handler.handler`, timeout 30s, env
+  `SCHEDULE_TABLE=deanza-class-schedule`, `CORS_ALLOW_ORIGIN=*`).
+- Live endpoint (no API key):
+  `https://63l5xpc4uk.execute-api.us-west-2.amazonaws.com/prod/plan` — a `POST /plan`
+  resource on the **same** REST API as `/conflicts`, with `OPTIONS /plan` for CORS,
+  both `AWS_PROXY` to the function.
+- **Role.** Reuses the conflict Lambda's role
+  (`deanza-bedrock-chatbot-ChatFunctionRole-…`) plus a new **read-only** inline
+  policy `PlanFunctionDynamoRead` (`Query`/`Scan`/`GetItem`/`BatchGetItem` on
+  `deanza-class-schedule` only). The scan permission covers the no-subject-filter
+  fallback. This role grant is the *only* IAM change; the local load/query scripts
+  are unaffected (they run as the SSO user, a different principal).
+- **Packaging.** The zip is the whole `scripts/` tree, not just `conflicts/` —
+  `plan_handler` transitively imports `class_schedule.query`,
+  `pathway_conflicts.resolve`, `course_pairing.normalization`, and `common`.
+  `common.py`'s `python-dotenv` import is optional (guarded) because that package
+  isn't in the Lambda runtime.
+
+To update the code: rezip `scripts/` and
+`aws lambda update-function-code --function-name deanza-schedule-plan --zip-file fileb://<zip>`.
+
+> Gotcha: after adding the `/plan` methods, the **first** `create-deployment` may
+> still 403 with "Missing Authentication Token" until it propagates — redeploy the
+> `prod` stage once more and it resolves.
 
 > **Auth:** a REST API is used (not HTTP API) because API keys + usage plans are a
 > REST API feature. Every call requires an `x-api-key` header; the usage plan
@@ -220,9 +323,10 @@ sides so pathway codes (`"MATH 1A"`) line up with schedule courses (`"MATH D001A
 
 ## Limitations & gotchas
 
-- **Not term-aware by itself** — the caller supplies the right term's sections.
-  Year/quarter → term mapping (year_1 = `202722`/`202732`/`202742`) is **not**
-  built yet; year_2 has no future schedule loaded.
+- **`/conflicts` is not term-aware by itself** — the caller supplies the right
+  term's sections (the batch pipeline maps year/quarter → term in
+  `pathway_conflicts/resolve.py`). The `/plan` endpoint *is* term-aware: give it a
+  `term_code` and it reads the sections itself.
 - **`TBA`/async sections never conflict** — no fixed time. If two async sections
   "should" be flagged for some other reason, this service won't.
 - **Part-term A vs B** — with `require_date_overlap` off (default), same-time

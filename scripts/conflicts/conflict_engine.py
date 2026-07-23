@@ -122,6 +122,73 @@ def _conflict_entry(s1, s2, m1, m2):
     }
 
 
+def _pair_entry(s1, s2, hit):
+    """Shape one classified cross-course pair.
+
+    Same identity/metadata as a conflict entry, plus an explicit `overlap` flag
+    so the student planner can render the "these clash" vs "these are fine" split.
+    `overlap_detail` (the shared days + both times) is present only on a collision.
+    """
+    entry = {
+        "course_a": s1["course"], "crn_a": s1["section_id"],
+        "course_b": s2["course"], "crn_b": s2["section_id"],
+        "overlap": hit is not None,
+        "meta_a": _meta(s1["row"]),
+        "meta_b": _meta(s2["row"]),
+    }
+    if hit:
+        m1, m2 = hit
+        entry["overlap_detail"] = {
+            "days": sorted(m1["days"] & m2["days"]),
+            "time_a": m1["times_raw"],
+            "time_b": m2["times_raw"],
+        }
+    return entry
+
+
+def classify_pairs(rows, require_day_overlap=True, require_date_overlap=False):
+    """Compare all cross-course section pairs, tagging each as overlap or clear.
+
+    Same pairing rules as `find_conflicts` (group by CRN, skip same-course pairs,
+    TBA/async never overlaps), but returns EVERY evaluated pair with an `overlap`
+    flag — the full "Yes/No" split the student-facing planner shows — rather than
+    only the collisions. `find_conflicts` is left as the lean report other callers
+    (the pathway pipeline) depend on.
+
+    Returns:
+        {
+          "sections_evaluated": int,
+          "pairs_evaluated": int,        # cross-course section pairs considered
+          "overlap_count": int,          # how many of them collide
+          "pairs": [ {course_a, crn_a, course_b, crn_b, overlap,
+                      overlap_detail?, meta_a, meta_b} ]
+        }
+    """
+    sections = build_sections(rows)
+    pairs = []
+    overlap_count = 0
+
+    # Pairwise over sections, skipping same-course pairs (the diagonal blocks) —
+    # identical to find_conflicts, but we keep the non-colliding pairs too.
+    for i in range(len(sections)):
+        for j in range(i + 1, len(sections)):
+            s1, s2 = sections[i], sections[j]
+            if s1["course"] == s2["course"]:
+                continue
+            hit = find_pair_conflict(
+                s1, s2, require_day_overlap, require_date_overlap)
+            pairs.append(_pair_entry(s1, s2, hit))
+            if hit:
+                overlap_count += 1
+
+    return {
+        "sections_evaluated": len(sections),
+        "pairs_evaluated": len(pairs),
+        "overlap_count": overlap_count,
+        "pairs": pairs,
+    }
+
+
 def find_conflicts(rows, require_day_overlap=True, require_date_overlap=False):
     """Compare all cross-course section pairs and build the conflict report.
 
@@ -144,7 +211,8 @@ def find_conflicts(rows, require_day_overlap=True, require_date_overlap=False):
             if s1["course"] == s2["course"]:
                 continue
             pairs_evaluated += 1
-            hit = find_pair_conflict(s1, s2, require_day_overlap, require_date_overlap)
+            hit = find_pair_conflict(
+                s1, s2, require_day_overlap, require_date_overlap)
             if hit:
                 conflicts.append(_conflict_entry(s1, s2, hit[0], hit[1]))
 

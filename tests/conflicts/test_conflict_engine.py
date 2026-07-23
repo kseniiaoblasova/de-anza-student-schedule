@@ -2,12 +2,13 @@
 
 import pytest
 
-from conflicts.conflict_engine import build_sections, find_conflicts
+from conflicts.conflict_engine import build_sections, find_conflicts, classify_pairs
 
 
 def sec(course, crn, days, times, **extra):
     """Build one section-meeting row like a schedule item."""
-    row = {"course": course, "crn": crn, "meeting_days": days, "meeting_times": times}
+    row = {"course": course, "crn": crn,
+           "meeting_days": days, "meeting_times": times}
     row.update(extra)
     return row
 
@@ -109,8 +110,10 @@ def test_build_sections_groups_by_crn():
 
 def test_metadata_echoed_on_conflict():
     rows = [
-        sec("MATH 1A", "100", "MW", "09:30 am-10:20 am", instructor="Ada L", room="S11"),
-        sec("ENGL 1A", "200", "MW", "09:30 am-10:20 am", instructor="Bob K", room="L42"),
+        sec("MATH 1A", "100", "MW", "09:30 am-10:20 am",
+            instructor="Ada L", room="S11"),
+        sec("ENGL 1A", "200", "MW", "09:30 am-10:20 am",
+            instructor="Bob K", room="L42"),
     ]
     c = find_conflicts(rows)["conflicts"][0]
     # sections sort by course, so ENGL is side A and MATH is side B
@@ -128,5 +131,69 @@ def test_require_date_overlap_separates_part_terms():
         sec("ENGL 1A", "200", "MW", "09:30 am-10:20 am",
             start_date="2026-11-02", end_date="2026-12-11", part_term="B"),
     ]
-    assert find_conflicts(rows)["conflict_count"] == 1                       # default: dates ignored
-    assert find_conflicts(rows, require_date_overlap=True)["conflict_count"] == 0
+    # default: dates ignored
+    assert find_conflicts(rows)["conflict_count"] == 1
+    assert find_conflicts(rows, require_date_overlap=True)[
+        "conflict_count"] == 0
+
+
+# ---- classify_pairs: the full Yes/No split for the student planner ----
+
+def test_classify_pairs_splits_overlap_and_clear():
+    """Every cross-course pair is returned, tagged overlap true/false."""
+    rows = [
+        sec("MATH 1A", "100", "MW", "09:30 am-10:20 am"),
+        sec("ENGL 1A", "200", "MW", "09:30 am-10:20 am"),   # clashes with MATH
+        # clashes with neither
+        sec("HIST 1A", "300", "TR", "01:00 pm-01:50 pm"),
+    ]
+    result = classify_pairs(rows)
+    assert result["sections_evaluated"] == 3
+    assert result["pairs_evaluated"] == 3          # 3 courses -> 3 cross pairs
+    assert result["overlap_count"] == 1
+    overlaps = [p for p in result["pairs"] if p["overlap"]]
+    clears = [p for p in result["pairs"] if not p["overlap"]]
+    assert len(overlaps) == 1 and len(clears) == 2
+    assert {overlaps[0]["course_a"], overlaps[0]
+            ["course_b"]} == {"MATH 1A", "ENGL 1A"}
+
+
+def test_classify_pairs_overlap_detail_only_on_collision():
+    """overlap_detail (shared days + times) is present only on colliding pairs."""
+    rows = [
+        sec("MATH 1A", "100", "MW", "09:30 am-10:20 am"),
+        sec("ENGL 1A", "200", "MW", "09:30 am-10:20 am"),
+        sec("HIST 1A", "300", "TR", "01:00 pm-01:50 pm"),
+    ]
+    for pair in classify_pairs(rows)["pairs"]:
+        if pair["overlap"]:
+            assert pair["overlap_detail"]["days"] == ["M", "W"]
+        else:
+            assert "overlap_detail" not in pair
+
+
+def test_classify_pairs_skips_same_course():
+    """Same-course section pairs are excluded, just like find_conflicts."""
+    rows = [
+        sec("MATH 1A", "100", "MW", "09:30 am-10:20 am"),
+        sec("MATH 1A", "101", "TR", "09:30 am-10:20 am"),
+    ]
+    result = classify_pairs(rows)
+    assert result["pairs_evaluated"] == 0
+    assert result["pairs"] == []
+
+
+def test_classify_pairs_agrees_with_find_conflicts():
+    """Regression guard: the shared engine keeps find_conflicts intact —
+    classify_pairs' overlap_count must equal find_conflicts' conflict_count."""
+    rows = [
+        sec("MATH 1A", "100", "MW", "09:30 am-10:20 am"),
+        sec("ENGL 1A", "200", "MW", "09:30 am-10:20 am"),
+        sec("HIST 1A", "300", "MW", "10:00 am-10:50 am"),
+        sec("BIOL 6A", "400", "F", "01:00 pm-03:50 pm"),
+    ]
+    legacy = find_conflicts(rows)
+    split = classify_pairs(rows)
+    assert split["overlap_count"] == legacy["conflict_count"]
+    assert split["pairs_evaluated"] == legacy["pairs_evaluated"]
+    assert split["sections_evaluated"] == legacy["sections_evaluated"]

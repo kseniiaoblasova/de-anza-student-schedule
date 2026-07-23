@@ -57,7 +57,11 @@ Full schemas, keys, term-code reference, and load commands: `dynamodb.md`.
    time; async/TBA excluded; same-course pairs skipped). Deployed as an AWS
    Lambda (`deanza-schedule-conflicts`) behind an API-key-protected REST API.
    Pure logic (`time_parsing`, `conflict_engine`) is separate from the thin
-   `lambda_handler`.
+   `lambda_handler`. A second, **term-aware** entry point (`plan_handler` +
+   `section_lookup`, endpoint `/plan`, keyless) powers the browser app's live
+   student planner: given a term + canonical course codes it reads the sections
+   from `deanza-class-schedule` itself and returns the full overlap/clear split
+   (via `conflict_engine.classify_pairs`) with a percentage.
 
 3. **Pathway conflicts pipeline** — `scripts/pathway_conflicts/` → doc: `pathway-conflicts.md`
    The orchestrator that ties it together: for each normalized pathway quarter,
@@ -100,8 +104,13 @@ Full schemas, keys, term-code reference, and load commands: `dynamodb.md`.
 - **CORS** is configured on the conflict API (OPTIONS preflight + headers), so a
   browser/React client can call it. Allowed origin defaults to `*` — tighten
   `CORS_ALLOW_ORIGIN` to the frontend origin for production.
+- **UI**: a React pathway explorer (`web-app/`, doc `web-app.md`) browses the
+  pathways from bundled data and, per pathway, runs a live term/course conflict
+  check against the `/plan` endpoint. The `/plan` Lambda (`deanza-schedule-plan`)
+  is **deployed and live** (keyless, reads the schedule table via a read-only
+  inline policy on the reused role; see `schedule-conflicts.md`).
 - **Not built yet**: a schedule-feasibility metric (can a full clash-free load be
-  built), and any UI. Enrollment weighting of "hot spots" is possible but unused.
+  built). Enrollment weighting of "hot spots" is possible but unused.
 - **Deploy note**: the workshop SSO role is denied the SAM/CloudFormation
   transform, so the Lambda + API were deployed imperatively via the `aws` CLI
   (details in `schedule-conflicts.md`); the SAM template is kept for other envs.

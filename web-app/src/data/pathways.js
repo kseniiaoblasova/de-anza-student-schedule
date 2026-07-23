@@ -182,6 +182,17 @@ function transformPathway(pathway, index) {
     0
   )
 
+  // Canonical course codes for the interactive planner chips. The verbose
+  // required_courses text isn't clean codes, but the conflict data already
+  // carries canonical ones (resolved `courses` + `missing_courses`); their union
+  // across quarters is the pathway's course set the student picks from.
+  const courseCodeSet = new Set()
+  for (const k of quarterKeys) {
+    for (const c of conflictsByQuarter[k].courses || []) courseCodeSet.add(c)
+    for (const c of conflictsByQuarter[k].missing_courses || []) courseCodeSet.add(c)
+  }
+  const courseCodes = [...courseCodeSet].sort()
+
   return {
     id: index + 1,
     programName: pathway.program_name,
@@ -202,6 +213,7 @@ function transformPathway(pathway, index) {
     hasConflictData: quarterKeys.length > 0,
     totalConflicts,
     hasConflicts: totalConflicts > 0,
+    courseCodes,
   }
 }
 

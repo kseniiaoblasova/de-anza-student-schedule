@@ -15,13 +15,18 @@ import os
 from pathlib import Path
 
 import boto3
-from dotenv import load_dotenv
 
 # Project root is two levels up from this file (scripts/common.py -> repo root)
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
-# Load credentials/config from .env once, on import
-load_dotenv(PROJECT_ROOT / ".env")
+# Load credentials/config from .env once, on import. python-dotenv is a local
+# dev convenience; it isn't in the Lambda runtime (and there's no .env there),
+# so treat it as optional — the planner Lambda imports this module transitively.
+try:
+    from dotenv import load_dotenv
+    load_dotenv(PROJECT_ROOT / ".env")
+except ModuleNotFoundError:
+    pass
 
 DEFAULT_REGION = os.environ.get("AWS_DEFAULT_REGION", "us-west-2")
 DEFAULT_BUCKET = os.environ.get(

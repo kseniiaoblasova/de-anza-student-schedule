@@ -1,13 +1,19 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-09
 Description: >
-  Schedule-conflict service. A stateless Lambda behind API Gateway that takes a
-  list of course sections and returns conflicting cross-course section pairs
-  (day + time overlap). Called by the pathway-conflict script and by the
-  scheduler-facing tool.
+  Schedule-conflict services. Two Lambdas behind API Gateway:
+
+  - ConflictFunction (/conflicts, API key required): stateless, takes a list of
+    course sections and returns conflicting cross-course section pairs (day +
+    time overlap). Called by the pathway-conflict batch script.
+  - PlanFunction (/plan, NO API key): term-aware student planner. Given a term
+    and canonical course codes, it reads that term's sections from
+    deanza-class-schedule itself and returns the overlap/clear split with a
+    percentage. Called directly by the browser app, so it is public.
 
   NOTE: a REST API (not HTTP API) is used because API keys + usage plans — the
-  chosen auth model — are a REST API feature.
+  auth model for /conflicts — are a REST API feature. /plan opts out per-method
+  with ApiKeyRequired: false.
 
 Globals:
   Function:
@@ -58,10 +64,43 @@ Resources:
             Path: /conflicts
             Method: post
 
+  # The student-planner function. Term-aware: it reads deanza-class-schedule
+  # itself, so (unlike ConflictFunction) it needs DynamoDB read access. Exposed
+  # WITHOUT an API key so the browser app can call it directly — the data is
+  # public published-schedule info; the usage plan's throttle still applies.
+  PlanFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: deanza-schedule-plan
+      CodeUri: ../scripts
+      Handler: conflicts.plan_handler.handler
+      Description: Term-aware planner — resolve a term's sections and classify overlaps
+      Environment:
+        Variables:
+          SCHEDULE_TABLE: deanza-class-schedule
+          # Tighten to the app's origin before real use.
+          CORS_ALLOW_ORIGIN: "*"
+      Policies:
+        # Read-only: the planner only queries the schedule table.
+        - DynamoDBReadPolicy:
+            TableName: deanza-class-schedule
+      Events:
+        PlanConflicts:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ConflictApi
+            Path: /plan
+            Method: post
+            Auth:
+              ApiKeyRequired: false
+
 Outputs:
   ApiEndpoint:
     Description: 'POST here with a JSON body {sections: [...]} and header x-api-key'
     Value: !Sub "https://${ConflictApi}.execute-api.${AWS::Region}.amazonaws.com/prod/conflicts"
+  PlanEndpoint:
+    Description: 'POST here with {term_code, courses:[...]} — no API key'
+    Value: !Sub "https://${ConflictApi}.execute-api.${AWS::Region}.amazonaws.com/prod/plan"
   ApiKeyRetrieval:
     Description: Fetch the generated API key value
     Value: !Sub "aws apigateway get-api-keys --name-query ${AWS::StackName} --include-values --query 'items[0].value' --output text"

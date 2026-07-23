@@ -67,6 +67,13 @@ TABLE_SCHEMAS = {
         "KeySchema": [{"AttributeName": "pathway_id", "KeyType": "HASH"}],
         "AttributeDefinitions": [{"AttributeName": "pathway_id", "AttributeType": "S"}],
     },
+    # Normalized pathways: cleaned course lists derived from deanza-pathways.
+    # Same identity key so a normalized item lines up 1:1 with its source, but
+    # this is a separate table so the source is never mutated.
+    "deanza-pathways-normalized": {
+        "KeySchema": [{"AttributeName": "pathway_id", "KeyType": "HASH"}],
+        "AttributeDefinitions": [{"AttributeName": "pathway_id", "AttributeType": "S"}],
+    },
     # Pathway conflicts: one item per pathway per quarter, holding the conflict
     # pairs found among that quarter's course sections. Partitioned by pathway
     # so "all quarters of a pathway" is one query (the React per-pathway view); a

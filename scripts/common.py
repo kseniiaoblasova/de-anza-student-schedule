@@ -67,6 +67,31 @@ TABLE_SCHEMAS = {
         "KeySchema": [{"AttributeName": "pathway_id", "KeyType": "HASH"}],
         "AttributeDefinitions": [{"AttributeName": "pathway_id", "AttributeType": "S"}],
     },
+    # Pathway conflicts: one item per pathway per quarter, holding the conflict
+    # pairs found among that quarter's course sections. Partitioned by pathway
+    # so "all quarters of a pathway" is one query (the React per-pathway view); a
+    # GSI on term_code serves "all pathways in a quarter" for cross-pathway views.
+    "deanza-pathway-conflicts": {
+        "KeySchema": [
+            {"AttributeName": "pathway_id", "KeyType": "HASH"},
+            {"AttributeName": "quarter_key", "KeyType": "RANGE"},
+        ],
+        "AttributeDefinitions": [
+            {"AttributeName": "pathway_id", "AttributeType": "S"},
+            {"AttributeName": "quarter_key", "AttributeType": "S"},
+            {"AttributeName": "term_code", "AttributeType": "S"},
+        ],
+        "GlobalSecondaryIndexes": [
+            {
+                "IndexName": "term-index",
+                "KeySchema": [
+                    {"AttributeName": "term_code", "KeyType": "HASH"},
+                    {"AttributeName": "pathway_id", "KeyType": "RANGE"},
+                ],
+                "Projection": {"ProjectionType": "ALL"},
+            }
+        ],
+    },
     # Class schedule (both years): partition by term so a whole quarter is one
     # query; sort key CRN#seq keeps multi-meeting sections from colliding.
     "deanza-class-schedule": {

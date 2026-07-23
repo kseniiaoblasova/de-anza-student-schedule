@@ -11,7 +11,7 @@ table (the source table is never mutated), and audits how many pathway courses
 actually pair with a scheduled course.
 
 This is the foundation for the later conflict-detection Lambda: without reliable
-pairing, Ashmeet's per-quarter conflict analysis has nothing to feed.
+pairing, the per-quarter conflict analysis has nothing to feed.
 
 ## Why
 
@@ -156,7 +156,7 @@ python scripts/course_pairing/audit_matches.py --source build
 ./venv/bin/python -m pytest tests/course_pairing/ -q
 ```
 
-## For the conflict pipeline (Ashmeet)
+## For the conflict pipeline
 
 - Read a pathway's quarter courses from `deanza-pathways-normalized`:
   `item["years"]["year_1"]["fall"]["normalized_courses"]` is a clean list of

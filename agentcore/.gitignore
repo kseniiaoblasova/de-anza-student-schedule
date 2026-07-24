@@ -1,0 +1,10 @@
+# Lambda build artifacts (bundled deps + zip — regenerated on deploy)
+proxy/build/
+proxy/*.zip
+
+# AgentCore toolkit generated container/build files (keep .bedrock_agentcore.yaml)
+.bedrock_agentcore/
+
+# Python
+__pycache__/
+*.pyc

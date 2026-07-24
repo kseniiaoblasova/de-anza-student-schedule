@@ -10,6 +10,15 @@ export const PLAN_API_URL =
   'https://63l5xpc4uk.execute-api.us-west-2.amazonaws.com/prod/plan'
 
 /**
+ * CHAT_API_URL is the LLM assistant endpoint (POST { message, sessionId } ->
+ * { answer, sessionId }). It fronts a Bedrock AgentCore agent that answers from
+ * the DynamoDB tables via tool calls. Override with VITE_CHAT_API_URL.
+ */
+export const CHAT_API_URL =
+  import.meta.env.VITE_CHAT_API_URL ||
+  'https://km7w10xv4e.execute-api.us-west-2.amazonaws.com/'
+
+/**
  * Selectable terms, newest-catalog first. Codes match deanza-class-schedule
  * partitions (…22 = Fall, …32 = Winter, …42 = Spring); both loaded academic
  * years are offered. `quarterKey` ties a term to the pathway quarter it maps to

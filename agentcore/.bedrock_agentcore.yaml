@@ -1,0 +1,62 @@
+default_agent: deanza_scheduler
+agents:
+  deanza_scheduler:
+    name: deanza_scheduler
+    language: python
+    node_version: '20'
+    entrypoint: C:/Users/krith/OneDrive/Projects/de-anza-student-schedule/agentcore/agent.py
+    deployment_type: container
+    runtime_type: null
+    platform: linux/arm64
+    container_runtime: none
+    source_path: C:\Users\krith\OneDrive\Projects\de-anza-student-schedule\agentcore
+    aws:
+      execution_role: arn:aws:iam::374894298498:role/AmazonBedrockAgentCoreSDKRuntime-us-west-2-7740ab71bf
+      execution_role_auto_create: false
+      account: '374894298498'
+      region: us-west-2
+      ecr_repository: 374894298498.dkr.ecr.us-west-2.amazonaws.com/bedrock-agentcore-deanza_scheduler
+      ecr_auto_create: false
+      s3_path: null
+      s3_auto_create: false
+      network_configuration:
+        network_mode: PUBLIC
+        network_mode_config: null
+      protocol_configuration:
+        server_protocol: HTTP
+      observability:
+        enabled: true
+      lifecycle_configuration:
+        idle_runtime_session_timeout: null
+        max_lifetime: null
+    bedrock_agentcore:
+      agent_id: deanza_scheduler-LZoEXF69zV
+      agent_arn: arn:aws:bedrock-agentcore:us-west-2:374894298498:runtime/deanza_scheduler-LZoEXF69zV
+      agent_session_id: b7915cfa-05b0-4ce7-9a32-501d8857c133
+    codebuild:
+      project_name: bedrock-agentcore-deanza_scheduler-builder
+      execution_role: arn:aws:iam::374894298498:role/AmazonBedrockAgentCoreSDKCodeBuild-us-west-2-7740ab71bf
+      source_bucket: bedrock-agentcore-codebuild-sources-374894298498-us-west-2
+    memory:
+      mode: STM_ONLY
+      memory_id: deanza_scheduler_mem-rrjZpN9uRJ
+      memory_arn: arn:aws:bedrock-agentcore:us-west-2:374894298498:memory/deanza_scheduler_mem-rrjZpN9uRJ
+      memory_name: deanza_scheduler_mem
+      event_expiry_days: 30
+      first_invoke_memory_check_done: true
+      was_created_by_toolkit: true
+    identity:
+      credential_providers: []
+      workload: null
+    aws_jwt:
+      enabled: false
+      audiences: []
+      signing_algorithm: ES384
+      issuer_url: null
+      duration_seconds: 300
+    authorizer_configuration: null
+    request_header_configuration: null
+    oauth_configuration: null
+    api_key_env_var_name: null
+    api_key_credential_provider_name: null
+    is_generated_by_agentcore_create: false

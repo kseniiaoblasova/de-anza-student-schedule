@@ -1,10 +1,10 @@
 import { useState, useRef, useEffect } from 'react'
-import { answer, GREETING } from '../chat/chatEngine'
+import { ask, GREETING } from '../chat/chatAgent'
 
 const SUGGESTIONS = [
-  'Does MATH 1A conflict with ENGL 1A in Fall 2026?',
+  'Which classes have no room in Fall 2025?',
   'Which pathways include CIS 22A?',
-  'Courses in the Computer Science pathway first year',
+  'What does the Computer Science pathway require in year 1?',
 ]
 
 export default function ChatWidget() {
@@ -19,7 +19,7 @@ export default function ChatWidget() {
     endRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, open])
 
-  // Send a question: echo it, run the retrieval engine, append the answer.
+  // Send a question: echo it, ask the LLM agent, append the answer.
   const send = async (text) => {
     const q = (text ?? input).trim()
     if (!q || busy) return
@@ -27,10 +27,10 @@ export default function ChatWidget() {
     setMessages((m) => [...m, { role: 'user', text: q }])
     setBusy(true)
     try {
-      const reply = await answer(q)
+      const reply = await ask(q)
       setMessages((m) => [...m, { role: 'bot', text: reply }])
-    } catch {
-      setMessages((m) => [...m, { role: 'bot', text: 'Sorry, something went wrong. Try rephrasing.' }])
+    } catch (e) {
+      setMessages((m) => [...m, { role: 'bot', text: `Sorry, something went wrong (${e.message}). Try again in a moment.` }])
     } finally {
       setBusy(false)
     }
